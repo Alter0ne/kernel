@@ -40,153 +40,12 @@
 
 #include <net/bluetooth/bluetooth.h>
 
-#ifdef CONFIG_ANDROID_PARANOID_NETWORK
-#include <linux/android_aid.h>
-#endif
-
 #ifndef CONFIG_BT_SOCK_DEBUG
 #undef  BT_DBG
 #define BT_DBG(D...)
 #endif
 
 #define VERSION "2.16"
-
-/* Device information for BT address*/
-#define BD_ADDR_SIZE 12
-static char *bd_addr = NULL, *app_fw = NULL, *bt_mod = NULL;
-
-static ssize_t BTMAC_show(struct kobject *kobj, struct kobj_attribute *attr, char * buf)
-{
-	char *btmac = buf;
-	int ret = 0;
-
-	if (bd_addr != NULL) {
-		memcpy(btmac, bd_addr, BD_ADDR_SIZE);
-		pr_info("%s, Bt addrss = %s\n", __FUNCTION__, btmac);
-		ret = BD_ADDR_SIZE;
-	} else {
-		BT_ERR("Bt address memory is null\n");
-		ret = -1;
-	}
-
-	return ret;
-}
-
-static ssize_t BTMAC_store(struct kobject *kobj, struct kobj_attribute *attr, const char *buf, size_t n )
-{
-	const char *btmac = buf;
-	int ret = 0;
-
-	if (BD_ADDR_SIZE == (n-1)) {
-		bd_addr = kzalloc(BD_ADDR_SIZE, GFP_KERNEL);
-		if (NULL  != bd_addr) {
-			memcpy(bd_addr, btmac, n);
-			ret = n;
-		} else {
-			BT_ERR("Bt address allocate memory fail\n");
-			ret = -1;
-		}
-	} else {
-		BT_ERR("Bt address length isn't correct\n");
-		ret = -1;
-	}
-
-	return ret;
-}
-
-static ssize_t firmware_show(struct kobject *kobj, struct kobj_attribute *attr, char * buf)
-{
-	char *fw  = buf;
-	int ret = 0;
-
-	if (app_fw != NULL) {
-		fw += sprintf(fw, "%s\n", app_fw);
-		pr_info("%s, Bt app firmware = %s\n", __FUNCTION__, app_fw);
-		ret = (fw - buf);
-	} else {
-		BT_ERR("Bt app firmware is null\n");
-		ret = -1;
-	}
-
-	return ret;
-}
-
-static ssize_t firmware_store(struct kobject *kobj, struct kobj_attribute *attr, const char *buf, size_t n )
-{
-	int ret = 0;
-	const char *fw = buf;
-
-	app_fw = kzalloc(n, GFP_KERNEL);
-	if (NULL  != app_fw) {
-		memcpy(app_fw, fw, n);
-		ret = n;
-	} else {
-		BT_ERR("Bt app fw allocate memory fail\n");
-		ret = -1;
-	}
-
-	return ret;
-}
-
-static ssize_t module_show(struct kobject *kobj, struct kobj_attribute *attr, char * buf)
-{
-	char *mod  = buf;
-	int ret = 0;
-
-	if (bt_mod != NULL) {
-		mod += sprintf(mod, "%s\n", bt_mod);
-		pr_info("%s, Bt module = %s\n", __FUNCTION__, bt_mod);
-		ret = (mod - buf);
-	} else {
-		BT_ERR("Bt module is null\n");
-		ret = -1;
-	}
-
-	return ret;
-}
-
-static ssize_t module_store(struct kobject *kobj, struct kobj_attribute *attr, const char *buf, size_t n )
-{
-	int ret = 0;
-	const char *mod = buf;
-
-	bt_mod = kzalloc(n, GFP_KERNEL);
-	if (NULL  != bt_mod) {
-		memcpy(bt_mod, mod, n);
-		ret = n;
-	} else {
-		BT_ERR("Bt module allocate memory fail\n");
-		ret = -1;
-	}
-
-	return ret;
-}
-
-static struct kobject *devinfo_bt_kobj;
-#define devinfo_attr(_name) \
-	static struct kobj_attribute _name##_attr = { \
-		.attr ={ \
-			.name =__stringify(_name), \
-			.mode = 0644, \
-		}, \
-		.show = _name##_show, \
-		.store = _name##_store, \
-	}
-
-devinfo_attr(BTMAC);
-devinfo_attr(firmware);
-devinfo_attr(module);
-
-static struct attribute *bt_group[] = {
-	&BTMAC_attr.attr,
-	&firmware_attr.attr,
-	&module_attr.attr,
-	NULL,
-};
-
-static struct attribute_group attr_bt_group = {
-	.attrs = bt_group,
-};
 
 /* Bluetooth sockets */
 #define BT_MAX_PROTO	8
@@ -271,15 +130,15 @@ int bt_sock_unregister(int proto)
 }
 EXPORT_SYMBOL(bt_sock_unregister);
 
-#ifdef CONFIG_ANDROID_PARANOID_NETWORK
+#ifdef CONFIG_PARANOID_NETWORK
 static inline int current_has_bt_admin(void)
 {
-	return (!current_euid() || in_egroup_p(AID_NET_BT_ADMIN));
+	return !current_euid();
 }
 
 static inline int current_has_bt(void)
 {
-	return (current_has_bt_admin() || in_egroup_p(AID_NET_BT));
+	return current_has_bt_admin();
 }
 # else
 static inline int current_has_bt_admin(void)
@@ -347,7 +206,7 @@ EXPORT_SYMBOL(bt_sock_unlink);
 
 void bt_accept_enqueue(struct sock *parent, struct sock *sk)
 {
-	BT_DBG("parent %p, sk %p", parent, sk);
+	BT_DBG("parent %pK, sk %pK", parent, sk);
 
 	sock_hold(sk);
 	list_add_tail(&bt_sk(sk)->accept_q, &bt_sk(parent)->accept_q);
@@ -358,7 +217,7 @@ EXPORT_SYMBOL(bt_accept_enqueue);
 
 void bt_accept_unlink(struct sock *sk)
 {
-	BT_DBG("sk %p state %d", sk, sk->sk_state);
+	BT_DBG("sk %pK state %d", sk, sk->sk_state);
 
 	list_del_init(&bt_sk(sk)->accept_q);
 	bt_sk(sk)->parent->sk_ack_backlog--;
@@ -372,7 +231,7 @@ struct sock *bt_accept_dequeue(struct sock *parent, struct socket *newsock)
 	struct list_head *p, *n;
 	struct sock *sk;
 
-	BT_DBG("parent %p", parent);
+	BT_DBG("parent %pK", parent);
 
 	local_bh_disable();
 	list_for_each_safe(p, n, &bt_sk(parent)->accept_q) {
@@ -415,7 +274,7 @@ int bt_sock_recvmsg(struct kiocb *iocb, struct socket *sock,
 	size_t copied;
 	int err;
 
-	BT_DBG("sock %p sk %p len %zu", sock, sk, len);
+	BT_DBG("sock %pK sk %pK len %zu", sock, sk, len);
 
 	if (flags & (MSG_OOB))
 		return -EOPNOTSUPP;
@@ -426,8 +285,6 @@ int bt_sock_recvmsg(struct kiocb *iocb, struct socket *sock,
 			return 0;
 		return err;
 	}
-
-	msg->msg_namelen = 0;
 
 	copied = skb->len;
 	if (len < copied) {
@@ -486,9 +343,7 @@ int bt_sock_stream_recvmsg(struct kiocb *iocb, struct socket *sock,
 	if (flags & MSG_OOB)
 		return -EOPNOTSUPP;
 
-	msg->msg_namelen = 0;
-
-	BT_DBG("sk %p size %zu", sk, size);
+	BT_DBG("sk %pK size %zu", sk, size);
 
 	lock_sock(sk);
 
@@ -603,7 +458,7 @@ unsigned int bt_sock_poll(struct file *file, struct socket *sock, poll_table *wa
 	struct sock *sk = sock->sk;
 	unsigned int mask = 0;
 
-	BT_DBG("sock %p, sk %p", sock, sk);
+	BT_DBG("sock %pK, sk %pK", sock, sk);
 
 	poll_wait(file, sk_sleep(sk), wait);
 
@@ -646,7 +501,7 @@ int bt_sock_ioctl(struct socket *sock, unsigned int cmd, unsigned long arg)
 	long amount;
 	int err;
 
-	BT_DBG("sk %p cmd %x arg %lx", sk, cmd, arg);
+	BT_DBG("sk %pK cmd %x arg %lx", sk, cmd, arg);
 
 	switch (cmd) {
 	case TIOCOUTQ:
@@ -692,7 +547,7 @@ int bt_sock_wait_state(struct sock *sk, int state, unsigned long timeo)
 	DECLARE_WAITQUEUE(wait, current);
 	int err = 0;
 
-	BT_DBG("sk %p", sk);
+	BT_DBG("sk %pK", sk);
 
 	add_wait_queue(sk_sleep(sk), &wait);
 	while (sk->sk_state != state) {
@@ -733,15 +588,6 @@ static int __init bt_init(void)
 	int err;
 
 	BT_INFO("Core ver %s", VERSION);
-
-	devinfo_bt_kobj = kobject_create_and_add("dev-info_bt", NULL);
-
-	if (devinfo_bt_kobj == NULL)
-		BT_ERR("kobject_create_and_add failed\n");
-
-	err= sysfs_create_group(devinfo_bt_kobj, &attr_bt_group);
-	if (err)
-		BT_ERR("sysfs_create_group failed\n");
 
 	err = bt_sysfs_init();
 	if (err < 0)

@@ -1,6 +1,6 @@
 /*
    BlueZ - Bluetooth protocol stack for Linux
-   Copyright (c) 2000-2001, 2011-2012 Code Aurora Forum.  All rights reserved.
+   Copyright (c) 2000-2001, 2011-2012 The Linux Foundation.  All rights reserved.
    Copyright (C) 2009-2010 Gustavo F. Padovan <gustavo@padovan.org>
    Copyright (C) 2010 Google Inc.
 
@@ -41,7 +41,7 @@ static void l2cap_sock_timeout(unsigned long arg)
 	struct sock *sk = (struct sock *) arg;
 	int reason;
 
-	BT_DBG("sock %p state %d", sk, sk->sk_state);
+	BT_DBG("sock %pK state %d", sk, sk->sk_state);
 
 	bh_lock_sock(sk);
 
@@ -71,13 +71,13 @@ static void l2cap_sock_timeout(unsigned long arg)
 
 void l2cap_sock_set_timer(struct sock *sk, long timeout)
 {
-	BT_DBG("sk %p state %d timeout %ld", sk, sk->sk_state, timeout);
+	BT_DBG("sk %pK state %d timeout %ld", sk, sk->sk_state, timeout);
 	sk_reset_timer(sk, &sk->sk_timer, jiffies + timeout);
 }
 
 void l2cap_sock_clear_timer(struct sock *sk)
 {
-	BT_DBG("sock %p state %d", sk, sk->sk_state);
+	BT_DBG("sock %pK state %d", sk, sk->sk_state);
 	sk_stop_timer(sk, &sk->sk_timer);
 }
 
@@ -87,6 +87,20 @@ int l2cap_sock_le_params_valid(struct bt_le_params *le_params)
 			le_params->scan_window > BT_LE_SCAN_WINDOW_MAX ||
 			le_params->scan_interval < BT_LE_SCAN_INTERVAL_MIN ||
 			le_params->scan_window > le_params->scan_interval ||
+			le_params->interval_min < BT_LE_CONN_INTERVAL_MIN ||
+			le_params->interval_max > BT_LE_CONN_INTERVAL_MAX ||
+			le_params->interval_min > le_params->interval_max ||
+			le_params->supervision_timeout < BT_LE_SUP_TO_MIN ||
+			le_params->supervision_timeout > BT_LE_SUP_TO_MAX) {
+		return 0;
+	}
+
+	return 1;
+}
+
+int l2cap_sock_le_conn_update_params_valid(struct bt_le_params *le_params)
+{
+	if (!le_params || le_params->latency > BT_LE_LATENCY_MAX ||
 			le_params->interval_min < BT_LE_CONN_INTERVAL_MIN ||
 			le_params->interval_max > BT_LE_CONN_INTERVAL_MAX ||
 			le_params->interval_min > le_params->interval_max ||
@@ -116,7 +130,7 @@ static int l2cap_sock_bind(struct socket *sock, struct sockaddr *addr, int alen)
 	struct sockaddr_l2 la;
 	int len, err = 0;
 
-	BT_DBG("sk %p", sk);
+	BT_DBG("sk %pK", sk);
 
 	if (!addr || addr->sa_family != AF_BLUETOOTH)
 		return -EINVAL;
@@ -183,11 +197,11 @@ static int l2cap_sock_connect(struct socket *sock, struct sockaddr *addr, int al
 	struct sockaddr_l2 la;
 	int len, err = 0;
 
-	BT_DBG("sk %p type %d mode %d state %d", sk, sk->sk_type,
+	BT_DBG("sk %pK type %d mode %d state %d", sk, sk->sk_type,
 		l2cap_pi(sk)->mode, sk->sk_state);
 
 	if (!addr || alen < sizeof(addr->sa_family) ||
-	    addr->sa_family != AF_BLUETOOTH)
+		addr->sa_family != AF_BLUETOOTH)
 		return -EINVAL;
 
 	memset(&la, 0, sizeof(la));
@@ -273,7 +287,7 @@ static int l2cap_sock_listen(struct socket *sock, int backlog)
 	struct sock *sk = sock->sk;
 	int err = 0;
 
-	BT_DBG("sk %p backlog %d", sk, backlog);
+	BT_DBG("sk %pK backlog %d", sk, backlog);
 
 	lock_sock(sk);
 
@@ -343,7 +357,7 @@ static int l2cap_sock_accept(struct socket *sock, struct socket *newsock, int fl
 
 	timeo = sock_rcvtimeo(sk, flags & O_NONBLOCK);
 
-	BT_DBG("sk %p timeo %ld", sk, timeo);
+	BT_DBG("sk %pK timeo %ld", sk, timeo);
 
 	/* Wait for an incoming connection. (wake-one). */
 	add_wait_queue_exclusive(sk_sleep(sk), &wait);
@@ -376,7 +390,7 @@ static int l2cap_sock_accept(struct socket *sock, struct socket *newsock, int fl
 
 	newsock->state = SS_CONNECTED;
 
-	BT_DBG("new socket %p", nsk);
+	BT_DBG("new socket %pK", nsk);
 
 done:
 	release_sock(sk);
@@ -388,8 +402,9 @@ static int l2cap_sock_getname(struct socket *sock, struct sockaddr *addr, int *l
 	struct sockaddr_l2 *la = (struct sockaddr_l2 *) addr;
 	struct sock *sk = sock->sk;
 
-	BT_DBG("sock %p, sk %p", sock, sk);
+	BT_DBG("sock %pK, sk %pK", sock, sk);
 
+	memset(la, 0, sizeof(struct sockaddr_l2));
 	addr->sa_family = AF_BLUETOOTH;
 	*len = sizeof(struct sockaddr_l2);
 
@@ -414,7 +429,7 @@ static int l2cap_sock_getsockopt_old(struct socket *sock, int optname, char __us
 	int len, err = 0;
 	u32 opt;
 
-	BT_DBG("sk %p", sk);
+	BT_DBG("sk %pK", sk);
 
 	if (get_user(len, optlen))
 		return -EFAULT;
@@ -501,7 +516,7 @@ static int l2cap_sock_getsockopt(struct socket *sock, int level, int optname, ch
 	struct bt_power pwr;
 	int len, err = 0;
 
-	BT_DBG("sk %p", sk);
+	BT_DBG("sk %pK", sk);
 
 	if (level == SOL_L2CAP)
 		return l2cap_sock_getsockopt_old(sock, optname, optval, optlen);
@@ -594,7 +609,7 @@ static int l2cap_sock_setsockopt_old(struct socket *sock, int optname, char __us
 	int len, le_sock, err = 0;
 	u32 opt;
 
-	BT_DBG("sk %p", sk);
+	BT_DBG("sk %pK", sk);
 
 	lock_sock(sk);
 
@@ -707,7 +722,7 @@ static int l2cap_sock_setsockopt(struct socket *sock, int level, int optname, ch
 	int len, err = 0;
 	u32 opt;
 
-	BT_DBG("sk %p", sk);
+	BT_DBG("sk %pK", sk);
 
 	if (level == SOL_L2CAP)
 		return l2cap_sock_setsockopt_old(sock, optname, optval, optlen);
@@ -839,7 +854,8 @@ static int l2cap_sock_setsockopt(struct socket *sock, int level, int optname, ch
 		}
 
 		if (!conn->hcon->out ||
-				!l2cap_sock_le_params_valid(&le_params)) {
+				!l2cap_sock_le_conn_update_params_valid(
+					&le_params)) {
 			err = -EINVAL;
 			break;
 		}
@@ -871,7 +887,7 @@ static int l2cap_sock_sendmsg(struct kiocb *iocb, struct socket *sock, struct ms
 	int err;
 	u8 amp_id;
 
-	BT_DBG("sock %p, sk %p", sock, sk);
+	BT_DBG("sock %pK, sk %pK", sock, sk);
 
 	err = sock_error(sk);
 	if (err)
@@ -1048,7 +1064,7 @@ void l2cap_sock_kill(struct sock *sk)
 	if (!sock_flag(sk, SOCK_ZAPPED) || sk->sk_socket)
 		return;
 
-	BT_DBG("sk %p state %d", sk, sk->sk_state);
+	BT_DBG("sk %pK state %d", sk, sk->sk_state);
 
 	/* Kill poor orphan */
 	bt_sock_unlink(&l2cap_sk_list, sk);
@@ -1070,7 +1086,7 @@ static void l2cap_sock_cleanup_listen(struct sock *parent)
 {
 	struct sock *sk;
 
-	BT_DBG("parent %p", parent);
+	BT_DBG("parent %pK", parent);
 
 	/* Close not yet accepted channels */
 	while ((sk = bt_accept_dequeue(parent, NULL)))
@@ -1084,7 +1100,7 @@ void __l2cap_sock_close(struct sock *sk, int reason)
 {
 	struct l2cap_conn *conn = l2cap_pi(sk)->conn;
 
-	BT_DBG("sk %p state %d socket %p", sk, sk->sk_state, sk->sk_socket);
+	BT_DBG("sk %pK state %d socket %pK", sk, sk->sk_state, sk->sk_socket);
 
 	switch (sk->sk_state) {
 	case BT_LISTEN:
@@ -1142,7 +1158,7 @@ static int l2cap_sock_shutdown(struct socket *sock, int how)
 	struct sock *sk = sock->sk;
 	int err = 0;
 
-	BT_DBG("sock %p, sk %p", sock, sk);
+	BT_DBG("sock %pK, sk %pK", sock, sk);
 
 	if (!sk)
 		return 0;
@@ -1177,7 +1193,7 @@ static int l2cap_sock_release(struct socket *sock)
 	struct sock *sk2 = NULL;
 	int err;
 
-	BT_DBG("sock %p, sk %p", sock, sk);
+	BT_DBG("sock %pK, sk %pK", sock, sk);
 
 	if (!sk)
 		return 0;
@@ -1189,7 +1205,7 @@ static int l2cap_sock_release(struct socket *sock)
 					l2cap_pi(sk)->incoming ? 0 : 1);
 
 	/* If matching socket found, request tear down */
-	BT_DBG("sock:%p companion:%p", sk, sk2);
+	BT_DBG("sock:%pK companion:%pK", sk, sk2);
 	if (sk2)
 		l2cap_sock_set_timer(sk2, 1);
 
@@ -1202,7 +1218,7 @@ static int l2cap_sock_release(struct socket *sock)
 
 static void l2cap_sock_destruct(struct sock *sk)
 {
-	BT_DBG("sk %p", sk);
+	BT_DBG("sk %pK", sk);
 
 	skb_queue_purge(&sk->sk_receive_queue);
 	skb_queue_purge(&sk->sk_write_queue);
@@ -1220,7 +1236,7 @@ void l2cap_sock_init(struct sock *sk, struct sock *parent)
 {
 	struct l2cap_pinfo *pi = l2cap_pi(sk);
 
-	BT_DBG("sk %p parent %p", sk, parent);
+	BT_DBG("sk %pK parent %pK", sk, parent);
 
 	if (parent) {
 		sk->sk_type = parent->sk_type;
@@ -1319,7 +1335,7 @@ static int l2cap_sock_create(struct net *net, struct socket *sock, int protocol,
 {
 	struct sock *sk;
 
-	BT_DBG("sock %p", sock);
+	BT_DBG("sock %pK", sock);
 
 	sock->state = SS_UNCONNECTED;
 

@@ -1,5 +1,6 @@
 /*
    BlueZ - Bluetooth protocol stack for Linux
+   Copyright (c) 2013 The Linux Foundation.  All rights reserved.
    Copyright (C) 2011 Nokia Corporation and/or its subsidiary(-ies).
 
    This program is free software; you can redistribute it and/or modify
@@ -46,6 +47,8 @@
 
 static int smp_distribute_keys(struct l2cap_conn *conn, __u8 force);
 
+#define AUTH_REQ_MASK   0x07
+
 static inline void swap128(u8 src[16], u8 dst[16])
 {
 	int i;
@@ -68,7 +71,7 @@ static int smp_e(struct crypto_blkcipher *tfm, const u8 *k, u8 *r)
 	unsigned char iv[128];
 
 	if (tfm == NULL) {
-		BT_ERR("tfm %p", tfm);
+		BT_ERR("tfm %pK", tfm);
 		return -EINVAL;
 	}
 
@@ -213,6 +216,7 @@ static __u8 authreq_to_seclevel(__u8 authreq)
 static __u8 seclevel_to_authreq(__u8 level)
 {
 	switch (level) {
+	case BT_SECURITY_VERY_HIGH:
 	case BT_SECURITY_HIGH:
 		return SMP_AUTH_MITM | SMP_AUTH_BONDING;
 
@@ -242,7 +246,7 @@ static void build_pairing_cmd(struct l2cap_conn *conn,
 		req->max_key_size = SMP_MAX_ENC_KEY_SIZE;
 		req->init_key_dist = all_keys;
 		req->resp_key_dist = dist_keys;
-		req->auth_req = authreq;
+		req->auth_req = (authreq & AUTH_REQ_MASK);
 		BT_DBG("SMP_CMD_PAIRING_REQ %d %d %d %d %2.2x %2.2x",
 				req->io_capability, req->oob_flag,
 				req->auth_req, req->max_key_size,
@@ -261,7 +265,7 @@ static void build_pairing_cmd(struct l2cap_conn *conn,
 	rsp->max_key_size = SMP_MAX_ENC_KEY_SIZE;
 	rsp->init_key_dist = req->init_key_dist & all_keys;
 	rsp->resp_key_dist = req->resp_key_dist & dist_keys;
-	rsp->auth_req = authreq;
+	req->auth_req = (authreq & AUTH_REQ_MASK);
 	BT_DBG("SMP_CMD_PAIRING_RSP %d %d %d %d %2.2x %2.2x",
 			req->io_capability, req->oob_flag, req->auth_req,
 			req->max_key_size, req->init_key_dist,
@@ -446,9 +450,12 @@ int le_user_confirm_reply(struct hci_conn *hcon, u16 mgmt_op, void *cp)
 		smp_send_cmd(conn, SMP_CMD_PAIRING_FAIL, sizeof(reason),
 								&reason);
 		del_timer(&hcon->smp_timer);
+		if (hcon->disconn_cfm_cb)
+			hcon->disconn_cfm_cb(hcon, SMP_UNSPECIFIED);
 		clear_bit(HCI_CONN_ENCRYPT_PEND, &hcon->pend);
 		mgmt_auth_failed(hcon->hdev->id, conn->dst, reason);
 		hci_conn_put(hcon);
+		l2cap_conn_del(hcon, EACCES, 0);
 	} else if (hcon->cfm_pending) {
 		BT_DBG("send_pairing_confirm");
 		ret = send_pairing_confirm(conn);
@@ -465,7 +472,7 @@ static u8 smp_cmd_pairing_req(struct l2cap_conn *conn, struct sk_buff *skb)
 	u8 auth = SMP_AUTH_NONE;
 	int ret;
 
-	BT_DBG("conn %p", conn);
+	BT_DBG("conn %pK", conn);
 
 	hcon->preq[0] = SMP_CMD_PAIRING_REQ;
 	memcpy(&hcon->preq[1], req, sizeof(*req));
@@ -513,7 +520,7 @@ static u8 smp_cmd_pairing_rsp(struct l2cap_conn *conn, struct sk_buff *skb)
 	u8 key_size, auth = SMP_AUTH_NONE;
 	int ret;
 
-	BT_DBG("conn %p", conn);
+	BT_DBG("conn %pK", conn);
 
 	skb_pull(skb, sizeof(*rsp));
 
@@ -559,7 +566,7 @@ static u8 smp_cmd_pairing_confirm(struct l2cap_conn *conn, struct sk_buff *skb)
 	struct hci_conn *hcon = conn->hcon;
 	int ret;
 
-	BT_DBG("conn %p %s", conn, conn->hcon->out ? "master" : "slave");
+	BT_DBG("conn %pK %s", conn, conn->hcon->out ? "master" : "slave");
 
 	memcpy(hcon->pcnf, skb->data, sizeof(hcon->pcnf));
 	skb_pull(skb, sizeof(hcon->pcnf));
@@ -605,7 +612,7 @@ static u8 smp_cmd_pairing_random(struct l2cap_conn *conn, struct sk_buff *skb)
 	if (ret)
 		return SMP_UNSPECIFIED;
 
-	BT_DBG("conn %p %s", conn, conn->hcon->out ? "master" : "slave");
+	BT_DBG("conn %pK %s", conn, conn->hcon->out ? "master" : "slave");
 
 	swap128(res, confirm);
 
@@ -693,7 +700,7 @@ static u8 smp_cmd_security_req(struct l2cap_conn *conn, struct sk_buff *skb)
 	struct smp_cmd_pairing cp;
 	struct link_key *key;
 
-	BT_DBG("conn %p", conn);
+	BT_DBG("conn %pK", conn);
 
 	if (test_bit(HCI_CONN_ENCRYPT_PEND, &hcon->pend))
 		return 0;
@@ -710,6 +717,10 @@ static u8 smp_cmd_security_req(struct l2cap_conn *conn, struct sk_buff *skb)
 
 invalid_key:
 	hcon->sec_req = FALSE;
+
+	/* Switch to Pairing Connection Parameters */
+	hci_le_conn_update(hcon, SMP_MIN_CONN_INTERVAL, SMP_MAX_CONN_INTERVAL,
+		SMP_MAX_CONN_LATENCY, SMP_SUPERVISION_TIMEOUT);
 
 	skb_pull(skb, sizeof(*rp));
 
@@ -736,7 +747,7 @@ int smp_conn_security(struct l2cap_conn *conn, __u8 sec_level)
 	struct hci_conn *hcon = conn->hcon;
 	__u8 authreq;
 
-	BT_DBG("conn %p hcon %p %d req: %d",
+	BT_DBG("conn %pK hcon %pK %d req: %d",
 			conn, hcon, hcon->sec_level, sec_level);
 
 	if (IS_ERR(hcon->hdev->tfm))
@@ -756,8 +767,7 @@ int smp_conn_security(struct l2cap_conn *conn, __u8 sec_level)
 
 	hcon->smp_conn = conn;
 	hcon->pending_sec_level = sec_level;
-
-	if ((hcon->link_mode & HCI_LM_MASTER) && !hcon->sec_req) {
+	if (hcon->link_mode & HCI_LM_MASTER) {
 		struct link_key *key;
 
 		key = hci_find_link_key_type(hcon->hdev, conn->dst,
@@ -771,6 +781,11 @@ int smp_conn_security(struct l2cap_conn *conn, __u8 sec_level)
 
 	if (hcon->link_mode & HCI_LM_MASTER) {
 		struct smp_cmd_pairing cp;
+
+		/* Switch to Pairing Connection Parameters */
+		hci_le_conn_update(hcon, SMP_MIN_CONN_INTERVAL,
+			SMP_MAX_CONN_INTERVAL, SMP_MAX_CONN_LATENCY,
+			SMP_SUPERVISION_TIMEOUT);
 
 		build_pairing_cmd(conn, &cp, NULL, authreq);
 		hcon->preq[0] = SMP_CMD_PAIRING_REQ;
@@ -802,7 +817,7 @@ static int smp_cmd_encrypt_info(struct l2cap_conn *conn, struct sk_buff *skb)
 
 	skb_pull(skb, sizeof(*rp));
 
-	BT_DBG("conn %p", conn);
+	BT_DBG("conn %pK", conn);
 
 	memset(rand, 0, sizeof(rand));
 
@@ -858,7 +873,7 @@ int smp_sig_channel(struct l2cap_conn *conn, struct sk_buff *skb)
 	if (IS_ERR(hcon->hdev->tfm)) {
 		err = PTR_ERR(hcon->hdev->tfm);
 		reason = SMP_PAIRING_NOTSUPP;
-		BT_ERR("SMP_PAIRING_NOTSUPP %p", hcon->hdev->tfm);
+		BT_ERR("SMP_PAIRING_NOTSUPP %pK", hcon->hdev->tfm);
 		goto done;
 	}
 
@@ -939,7 +954,7 @@ static int smp_distribute_keys(struct l2cap_conn *conn, __u8 force)
 	struct smp_cmd_pairing *req, *rsp;
 	__u8 *keydist;
 
-	BT_DBG("conn %p force %d", conn, force);
+	BT_DBG("conn %pK force %d", conn, force);
 
 	if (IS_ERR(hcon->hdev->tfm))
 		return PTR_ERR(hcon->hdev->tfm);
@@ -1032,6 +1047,12 @@ static int smp_distribute_keys(struct l2cap_conn *conn, __u8 force)
 	return 0;
 }
 
+void smp_conn_security_fail(struct l2cap_conn *conn, u8 code, u8 reason)
+{
+	BT_DBG("smp: %d %d ", code, reason);
+	smp_send_cmd(conn, SMP_CMD_PAIRING_FAIL, sizeof(reason), &reason);
+}
+
 int smp_link_encrypt_cmplt(struct l2cap_conn *conn, u8 status, u8 encrypt)
 {
 	struct hci_conn *hcon = conn->hcon;
@@ -1060,10 +1081,12 @@ void smp_timeout(unsigned long arg)
 	struct l2cap_conn *conn = (void *) arg;
 	u8 reason = SMP_UNSPECIFIED;
 
-	BT_DBG("%p", conn);
+	BT_DBG("%pK", conn);
 
 	smp_send_cmd(conn, SMP_CMD_PAIRING_FAIL, sizeof(reason), &reason);
 	clear_bit(HCI_CONN_ENCRYPT_PEND, &conn->hcon->pend);
 	mgmt_auth_failed(conn->hcon->hdev->id, conn->dst, SMP_UNSPECIFIED);
 	hci_conn_put(conn->hcon);
+	//delete the l2cap connection
+	l2cap_conn_del(conn->hcon, EACCES, 0);
 }

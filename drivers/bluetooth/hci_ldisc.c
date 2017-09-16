@@ -4,7 +4,7 @@
  *
  *  Copyright (C) 2002-2003  Maxim Krasnyansky <maxk@qualcomm.com>
  *  Copyright (C) 2004-2005  Marcel Holtmann <marcel@holtmann.org>
- *  Copyright (c) 2000-2001, 2010-2012, Code Aurora Forum. All rights reserved.
+ *  Copyright (c) 2000-2001, 2010-2012, The Linux Foundation. All rights reserved.
  *
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -121,16 +121,28 @@ static inline struct sk_buff *hci_uart_dequeue(struct hci_uart *hu)
 
 int hci_uart_tx_wakeup(struct hci_uart *hu)
 {
-	struct tty_struct *tty = hu->tty;
-	struct hci_dev *hdev = hu->hdev;
-	struct sk_buff *skb;
-
 	if (test_and_set_bit(HCI_UART_SENDING, &hu->tx_state)) {
 		set_bit(HCI_UART_TX_WAKEUP, &hu->tx_state);
 		return 0;
 	}
 
 	BT_DBG("");
+
+	schedule_work(&hu->write_work);
+
+	return 0;
+}
+
+static void hci_uart_write_work(struct work_struct *work)
+{
+	struct hci_uart *hu = container_of(work, struct hci_uart, write_work);
+	struct tty_struct *tty = hu->tty;
+	struct hci_dev *hdev = hu->hdev;
+	struct sk_buff *skb;
+
+	/* REVISIT: should we cope with bad skbs or ->write() returning
+	 * and error value ?
+	 */
 
 restart:
 	clear_bit(HCI_UART_TX_WAKEUP, &hu->tx_state);
@@ -156,14 +168,13 @@ restart:
 		goto restart;
 
 	clear_bit(HCI_UART_SENDING, &hu->tx_state);
-	return 0;
 }
 
 /* ------- Interface to HCI layer ------ */
 /* Initialize device */
 static int hci_uart_open(struct hci_dev *hdev)
 {
-	BT_DBG("%s %p", hdev->name, hdev);
+	BT_DBG("%s %pK", hdev->name, hdev);
 
 	/* Nothing to do for UART driver */
 
@@ -178,7 +189,7 @@ static int hci_uart_flush(struct hci_dev *hdev)
 	struct hci_uart *hu  = (struct hci_uart *) hdev->driver_data;
 	struct tty_struct *tty = hu->tty;
 
-	BT_DBG("hdev %p tty %p", hdev, tty);
+	BT_DBG("hdev %pK tty %pK", hdev, tty);
 
 	if (hu->tx_skb) {
 		kfree_skb(hu->tx_skb); hu->tx_skb = NULL;
@@ -197,7 +208,7 @@ static int hci_uart_flush(struct hci_dev *hdev)
 /* Close device */
 static int hci_uart_close(struct hci_dev *hdev)
 {
-	BT_DBG("hdev %p", hdev);
+	BT_DBG("hdev %pK", hdev);
 
 	if (!test_and_clear_bit(HCI_RUNNING, &hdev->flags))
 		return 0;
@@ -255,7 +266,7 @@ static int hci_uart_tty_open(struct tty_struct *tty)
 {
 	struct hci_uart *hu = (void *) tty->disc_data;
 
-	BT_DBG("tty %p", tty);
+	BT_DBG("tty %pK", tty);
 
 	/* FIXME: This btw is bogus, nothing requires the old ldisc to clear
 	   the pointer */
@@ -275,6 +286,8 @@ static int hci_uart_tty_open(struct tty_struct *tty)
 	tty->disc_data = hu;
 	hu->tty = tty;
 	tty->receive_room = 65536;
+
+	INIT_WORK(&hu->write_work, hci_uart_write_work);
 
 	spin_lock_init(&hu->rx_lock);
 	tasklet_init(&hu->tty_wakeup_task, hci_uart_tty_wakeup_action,
@@ -301,7 +314,7 @@ static void hci_uart_tty_close(struct tty_struct *tty)
 {
 	struct hci_uart *hu = (void *)tty->disc_data;
 
-	BT_DBG("tty %p", tty);
+	BT_DBG("tty %pK", tty);
 
 	/* Detach from the tty */
 	tty->disc_data = NULL;
@@ -312,6 +325,7 @@ static void hci_uart_tty_close(struct tty_struct *tty)
 		if (hdev)
 			hci_uart_close(hdev);
 
+		cancel_work_sync(&hu->write_work);
 		tasklet_kill(&hu->tty_wakeup_task);
 
 		if (test_and_clear_bit(HCI_UART_PROTO_SET, &hu->flags)) {
