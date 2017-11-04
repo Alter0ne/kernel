@@ -24,7 +24,7 @@
 #include <linux/pagemap.h>
 #include <linux/sched.h>
 #include <linux/io.h>
-#include <linux/android_pmem.h>
+
 #include <linux/memory_alloc.h>
 #include <media/videobuf2-msm-mem.h>
 #include <media/msm_camera.h>
@@ -194,14 +194,6 @@ int videobuf2_pmem_contig_user_get(struct videobuf2_contig_pmem *mem,
 		SZ_4K, 0, (unsigned long *)&mem->phyaddr, &len, UNCACHED, 0);
 	if (rc < 0)
 		ion_free(client, mem->ion_handle);
-#elif CONFIG_ANDROID_PMEM
-	rc = get_pmem_file((int)mem->vaddr, (unsigned long *)&mem->phyaddr,
-					&kvstart, &len, &mem->file);
-	if (rc < 0) {
-		pr_err("%s: get_pmem_file fd %d error %d\n",
-					__func__, (int)mem->vaddr, rc);
-		return rc;
-	}
 #else
 	paddr = 0;
 	kvstart = 0;
@@ -227,8 +219,6 @@ void videobuf2_pmem_contig_user_put(struct videobuf2_contig_pmem *mem,
 		ion_unmap_iommu(client, mem->ion_handle,
 				CAMERA_DOMAIN, GEN_POOL);
 		ion_free(client, mem->ion_handle);
-#elif CONFIG_ANDROID_PMEM
-		put_pmem_file(mem->file);
 #endif
 	}
 	mem->is_userptr = 0;

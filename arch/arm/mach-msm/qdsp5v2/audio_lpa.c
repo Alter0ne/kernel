@@ -27,7 +27,6 @@
 #include <linux/delay.h>
 #include <linux/earlysuspend.h>
 #include <linux/list.h>
-#include <linux/android_pmem.h>
 #include <asm/atomic.h>
 #include <asm/ioctls.h>
 #include <mach/msm_adsp.h>

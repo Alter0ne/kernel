@@ -34,7 +34,6 @@
 #include <linux/dma-mapping.h>
 #include <linux/msm_audio.h>
 #include <linux/msm_audio_sbc.h>
-#include <linux/android_pmem.h>
 #include <linux/memory_alloc.h>
 
 #include <mach/iommu.h>

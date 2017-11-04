@@ -24,7 +24,7 @@
 #include <linux/pagemap.h>
 #include <linux/sched.h>
 #include <linux/io.h>
-#include <linux/android_pmem.h>
+
 #include <linux/memory_alloc.h>
 #include <media/videobuf-msm-mem.h>
 #include <media/msm_camera.h>

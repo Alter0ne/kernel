@@ -28,7 +28,7 @@
 #include <linux/fs.h>
 #include <linux/list.h>
 #include <linux/uaccess.h>
-#include <linux/android_pmem.h>
+
 #include <linux/poll.h>
 #include <media/msm_camera.h>
 #include <mach/camera.h>

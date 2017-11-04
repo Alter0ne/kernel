@@ -16,7 +16,6 @@
 #include <linux/wait.h>
 #include <linux/mutex.h>
 #include <linux/io.h>
-#include <linux/android_pmem.h>
 #include <linux/delay.h>
 #include <linux/dma-mapping.h>
 #include <linux/uaccess.h>

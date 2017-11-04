@@ -25,7 +25,6 @@
 #include <media/v4l2-ioctl.h>
 #include <media/v4l2-device.h>
 
-#include <linux/android_pmem.h>
 #include <media/msm_camera.h>
 #include <media/msm_isp.h>
 #include "msm.h"
@@ -162,25 +161,6 @@ static int msm_stats_deinit(struct msm_stats_bufq_ctrl *stats_ctrl)
 	return rc;
 }
 
-#ifdef CONFIG_ANDROID_PMEM
-static int msm_stats_check_pmem_info(struct msm_stats_buf_info *info, int len)
-{
-	if (info->offset < len &&
-		info->offset + info->len <= len &&
-		info->planar0_off < len && info->planar1_off < len)
-		return 0;
-
-	pr_err("%s: check failed: off %d len %d y %d cbcr %d (total len %d)\n",
-		   __func__,
-		   info->offset,
-		   info->len,
-		   info->planar0_off,
-		   info->planar1_off,
-		   len);
-	return -EINVAL;
-}
-#endif
-
 static int msm_stats_buf_prepare(struct msm_stats_bufq_ctrl *stats_ctrl,
 	struct msm_stats_buf_info *info, struct ion_client *client)
 {
@@ -225,14 +205,6 @@ static int msm_stats_buf_prepare(struct msm_stats_bufq_ctrl *stats_ctrl,
 		pr_err("%s: cannot map address", __func__);
 		goto out2;
 	}
-#elif CONFIG_ANDROID_PMEM
-	rc = get_pmem_file(info->fd, &paddr, &kvstart, &len, &file);
-	if (rc < 0) {
-		pr_err("%s: get_pmem_file fd %d error %d\n",
-			   __func__, info->fd, rc);
-		goto out1;
-	}
-	stats_buf->file = file;
 #else
 	paddr = 0;
 	file = NULL;
@@ -262,8 +234,6 @@ out3:
 #ifdef CONFIG_MSM_MULTIMEDIA_USE_ION
 out2:
 	ion_free(client, stats_buf->handle);
-#elif CONFIG_ANDROID_PMEM
-	put_pmem_file(stats_buf->file);
 #endif
 out1:
 	return rc;
