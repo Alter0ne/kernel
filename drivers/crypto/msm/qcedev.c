@@ -454,14 +454,12 @@ static int start_cipher_req(struct qcedev_control *podev)
 
 	/* start the command on the podev->active_command */
 	qcedev_areq = podev->active_command;
-
 	qcedev_areq->cipher_req.cookie = qcedev_areq->handle;
-	creq.use_pmem = qcedev_areq->cipher_op_req.use_pmem;
-	if (qcedev_areq->cipher_op_req.use_pmem == QCEDEV_USE_PMEM)
-		creq.pmem = &qcedev_areq->cipher_op_req.pmem;
-	else
-		creq.pmem = NULL;
-
+	if (qcedev_areq->cipher_op_req.use_pmem == QCEDEV_USE_PMEM) {
+		pr_err("%s: Use of PMEM is not supported\n", __func__);
+		goto unsupported;
+	}
+	creq.pmem = NULL;
 	switch (qcedev_areq->cipher_op_req.alg) {
 	case QCEDEV_ALG_DES:
 		creq.alg = CIPHER_ALG_DES;
@@ -1563,16 +1561,18 @@ static int qcedev_check_cipher_params(struct qcedev_cipher_op_req *req,
 	if (req->byteoffset) {
 		if (req->mode != QCEDEV_AES_MODE_CTR)
 			goto error;
-		else { /* if using CTR mode make sure not using Pmem */
-			if (req->use_pmem)
-				goto error;
+		if (req->byteoffset >= AES_CE_BLOCK_SIZE) {
+			pr_err("%s: Invalid byte offset\n", __func__);
+			goto error;
 		}
 	}
-	/* if using PMEM with non-zero byteoffset, ensure it is in_place_op */
-	if (req->use_pmem) {
-		if (!req->in_place_op)
-			goto error;
+
+	if (req->data_len < req->byteoffset) {
+		pr_err("%s: req data length %u is less than byteoffset %u\n",
+				__func__, req->data_len, req->byteoffset);
+		goto error;
 	}
+
 	/* Ensure zer ivlen for ECB  mode  */
 	if (req->ivlen != 0) {
 		if ((req->mode == QCEDEV_AES_MODE_ECB) ||
@@ -1661,10 +1661,7 @@ static long qcedev_ioctl(struct file *file, unsigned cmd, unsigned long arg)
 				podev))
 			return -EINVAL;
 
-		if (qcedev_areq.cipher_op_req.use_pmem)
-			err = qcedev_pmem_ablk_cipher(&qcedev_areq, handle);
-		else
-			err = qcedev_vbuf_ablk_cipher(&qcedev_areq, handle);
+		err = qcedev_vbuf_ablk_cipher(&qcedev_areq, handle);
 		if (err)
 			return err;
 		if (__copy_to_user((void __user *)arg,
