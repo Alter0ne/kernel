@@ -106,6 +106,7 @@ enum {
 	HEAP_PROTECTED = 1,
 };
 
+
 static int ion_cp_protect_mem(unsigned int phy_base, unsigned int size,
 			unsigned int permission_type, int version,
 			void *data);
@@ -124,9 +125,9 @@ static unsigned long ion_cp_get_total_kmap_count(
 	return cp_heap->kmap_cached_count + cp_heap->kmap_uncached_count;
 }
 
+
 /**
- * Protects memory if heap is unsecured heap. Also ensures that we are in
- * the correct FMEM state if this heap is a reusable heap.
+ * Protects memory if heap is unsecured heap.
  * Must be called with heap->lock locked.
  */
 static int ion_cp_protect(struct ion_heap *heap, int version, void *data)
@@ -155,6 +156,7 @@ static int ion_cp_protect(struct ion_heap *heap, int version, void *data)
 					pr_err("%s: unable to transition heap to T-state\n",
 						__func__);
 			}
+
 			atomic_dec(&cp_heap->protect_cnt);
 		} else {
 			cp_heap->heap_protected = HEAP_PROTECTED;
@@ -170,8 +172,7 @@ out:
 }
 
 /**
- * Unprotects memory if heap is secure heap. Also ensures that we are in
- * the correct FMEM state if this heap is a reusable heap.
+ * Unprotects memory if heap is secure heap.
  * Must be called with heap->lock locked.
  */
 static void ion_cp_unprotect(struct ion_heap *heap, int version, void *data)
@@ -222,6 +223,7 @@ ion_phys_addr_t ion_cp_allocate(struct ion_heap *heap,
 		return ION_CP_ALLOCATE_FAIL;
 	}
 
+
 	if (secure_allocation &&
 	    (cp_heap->umap_count > 0 || cp_heap->kmap_cached_count > 0)) {
 		mutex_unlock(&cp_heap->lock);
@@ -260,7 +262,6 @@ ion_phys_addr_t ion_cp_allocate(struct ion_heap *heap,
 				__func__, heap->name,
 				cp_heap->total_size -
 				cp_heap->allocated_bytes, size);
-
 		if (cp_heap->reusable && !cp_heap->allocated_bytes &&
 		    cp_heap->heap_protected == HEAP_NOT_PROTECTED) {
 			if (fmem_set_state(FMEM_T_STATE) != 0)
@@ -566,23 +567,23 @@ int ion_cp_cache_ops(struct ion_heap *heap, struct ion_buffer *buffer,
 {
 	void (*outer_cache_op)(phys_addr_t, phys_addr_t);
 	struct ion_cp_heap *cp_heap =
-	     container_of(heap, struct  ion_cp_heap, heap);
+		container_of(heap, struct  ion_cp_heap, heap);
 
-	switch (cmd) {
-	case ION_IOC_CLEAN_CACHES:
-		dmac_clean_range(vaddr, vaddr + length);
-		outer_cache_op = outer_clean_range;
-		break;
-	case ION_IOC_INV_CACHES:
-		dmac_inv_range(vaddr, vaddr + length);
-		outer_cache_op = outer_inv_range;
-		break;
-	case ION_IOC_CLEAN_INV_CACHES:
-		dmac_flush_range(vaddr, vaddr + length);
-		outer_cache_op = outer_flush_range;
-		break;
-	default:
-		return -EINVAL;
+		switch (cmd) {
+		case ION_IOC_CLEAN_CACHES:
+			dmac_clean_range(vaddr, vaddr + length);
+			outer_cache_op = outer_clean_range;
+			break;
+		case ION_IOC_INV_CACHES:
+			dmac_inv_range(vaddr, vaddr + length);
+			outer_cache_op = outer_inv_range;
+			break;
+		case ION_IOC_CLEAN_INV_CACHES:
+			dmac_flush_range(vaddr, vaddr + length);
+			outer_cache_op = outer_flush_range;
+			break;
+		default:
+			return -EINVAL;
 	}
 
 	if (cp_heap->has_outer_cache) {
@@ -935,6 +936,7 @@ struct ion_heap *ion_cp_heap_create(struct ion_platform_heap *heap_data)
 	cp_heap->secure_base = cp_heap->base;
 	cp_heap->secure_size = heap_data->size;
 	cp_heap->has_outer_cache = heap_data->has_outer_cache;
+
 	atomic_set(&cp_heap->protect_cnt, 0);
 	if (heap_data->extra_data) {
 		struct ion_cp_heap_pdata *extra_data =
@@ -949,9 +951,11 @@ struct ion_heap *ion_cp_heap_create(struct ion_platform_heap *heap_data)
 		if (extra_data->setup_region)
 			cp_heap->bus_id = extra_data->setup_region();
 		if (extra_data->request_region)
-			cp_heap->request_region = extra_data->request_region;
+			cp_heap->request_region =
+				extra_data->request_region;
 		if (extra_data->release_region)
-			cp_heap->release_region = extra_data->release_region;
+			cp_heap->release_region =
+				extra_data->release_region;
 		cp_heap->iommu_map_all =
 				extra_data->iommu_map_all;
 		cp_heap->iommu_2x_map_domain =

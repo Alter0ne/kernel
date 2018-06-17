@@ -1893,6 +1893,8 @@ int uart_suspend_port(struct uart_driver *drv, struct uart_port *uport)
 		mutex_unlock(&port->mutex);
 		return 0;
 	}
+	put_device(tty_dev);
+
 #if !defined(CONFIG_ARCH_ACER_MSM8960)
 	if (console_suspend_enabled || !uart_console(uport))
 #endif

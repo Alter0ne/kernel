@@ -114,8 +114,8 @@ static void ion_set_base_address(struct ion_platform_heap *heap,
 		pr_info("ION heap %s using FMEM\n", shared_heap->name);
 	} else {
 		heap->base = msm_ion_get_base(heap->size + shared_heap->size,
-						shared_heap->memory_type,
-						co_heap_data->align);
+					shared_heap->memory_type,
+					co_heap_data->align);
 	}
 	if (heap->base) {
 		shared_heap->base = heap->base + heap->size;
@@ -339,10 +339,12 @@ static int msm_ion_remove(struct platform_device *pdev)
 	return 0;
 }
 
+
 static struct platform_driver msm_ion_driver = {
 	.probe = msm_ion_probe,
 	.remove = msm_ion_remove,
-	.driver = { .name = "ion-msm" }
+	.driver = {
+		.name = "ion-msm" }
 };
 
 static int __init msm_ion_init(void)

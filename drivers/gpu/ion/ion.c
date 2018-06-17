@@ -41,8 +41,9 @@
 /**
  * struct ion_device - the metadata of the ion device node
  * @dev:		the actual misc device
- * @buffers:	an rb tree of all the existing buffers
- * @lock:		lock protecting the buffers & heaps trees
+ * @buffers:		an rb tree of all the existing buffers
+ * @buffer_lock:	lock protecting the tree of buffers
+ * @lock:		rwsem protecting the tree of heaps and clients
  * @heaps:		list of all the heaps in the system
  * @user_clients:	list of all the clients created from userspace
  */
@@ -123,7 +124,6 @@ static int ion_validate_buffer_flags(struct ion_buffer *buffer,
 	}
 	return 0;
 }
-
 /* this function should only be called while dev->lock is held */
 static void ion_buffer_add(struct ion_device *dev,
 			   struct ion_buffer *buffer)
@@ -166,7 +166,7 @@ static void ion_iommu_add(struct ion_buffer *buffer,
 		} else if (iommu->key > entry->key) {
 			p = &(*p)->rb_right;
 		} else {
-			pr_err("%s: buffer %p already has mapping for domain %d"
+			pr_err("%s: buffer %pK already has mapping for domain %d"
 				" and partition %d\n", __func__,
 				buffer,
 				iommu_map_domain(iommu),
@@ -450,6 +450,7 @@ struct ion_handle *ion_alloc(struct ion_client *client, size_t len,
 		buffer = ion_buffer_create(heap, dev, len, align, flags);
 		if (!IS_ERR_OR_NULL(buffer))
 			break;
+
 		if (dbg_str_idx < MAX_DBG_STR_LEN) {
 			unsigned int len_left = MAX_DBG_STR_LEN-dbg_str_idx-1;
 			int ret_value = snprintf(&dbg_str[dbg_str_idx],
@@ -641,6 +642,7 @@ int ion_map_iommu(struct ion_client *client, struct ion_handle *handle,
 	struct ion_iommu_map *iommu_map;
 	int ret = 0;
 
+
 	if (ION_IS_CACHED(flags)) {
 		pr_err("%s: Cannot map iommu as cached.\n", __func__);
 		return -EINVAL;
@@ -704,12 +706,12 @@ int ion_map_iommu(struct ion_client *client, struct ion_handle *handle,
 		}
 	} else {
 		if (iommu_map->flags != iommu_flags) {
-			pr_err("%s: handle %p is already mapped with iommu flags %lx, trying to map with flags %lx\n",
+			pr_err("%s: handle %pK is already mapped with iommu flags %lx, trying to map with flags %lx\n",
 				__func__, handle,
 				iommu_map->flags, iommu_flags);
 			ret = -EINVAL;
 		} else if (iommu_map->mapped_size != iova_length) {
-			pr_err("%s: handle %p is already mapped with length"
+			pr_err("%s: handle %pK is already mapped with length"
 					" %x, trying to map with length %lx\n",
 				__func__, handle, iommu_map->mapped_size,
 				iova_length);
@@ -754,7 +756,7 @@ void ion_unmap_iommu(struct ion_client *client, struct ion_handle *handle,
 	iommu_map = ion_iommu_lookup(buffer, domain_num, partition_num);
 
 	if (!iommu_map) {
-		WARN(1, "%s: (%d,%d) was never mapped for %p\n", __func__,
+		WARN(1, "%s: (%d,%d) was never mapped for %pK\n", __func__,
 				domain_num, partition_num, buffer);
 		goto out;
 	}
@@ -797,7 +799,6 @@ void *ion_map_kernel(struct ion_client *client, struct ion_handle *handle,
 		mutex_unlock(&client->lock);
 		return ERR_PTR(-EEXIST);
 	}
-
 	mutex_lock(&buffer->lock);
 	vaddr = ion_handle_kmap_get(handle);
 	mutex_unlock(&buffer->lock);
@@ -818,7 +819,6 @@ void ion_unmap_kernel(struct ion_client *client, struct ion_handle *handle)
 	mutex_unlock(&client->lock);
 }
 EXPORT_SYMBOL(ion_unmap_kernel);
-
 static int check_vaddr_bounds(unsigned long start, unsigned long end)
 {
 	struct mm_struct *mm = current->active_mm;
@@ -1259,6 +1259,7 @@ static int ion_share_set_flags(struct ion_client *client,
 	unsigned long ion_flags = ION_SET_CACHE(CACHED);
 	if (flags & O_DSYNC)
 		ion_flags = ION_SET_CACHE(UNCACHED);
+
 
 	mutex_lock(&client->lock);
 	valid_handle = ion_handle_validate(client, handle);
