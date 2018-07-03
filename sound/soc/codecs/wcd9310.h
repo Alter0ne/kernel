@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -186,12 +186,22 @@ struct tabla_mbhc_config {
 	unsigned int gpio;
 	unsigned int gpio_irq;
 	int gpio_level_insert;
+	bool detect_extn_cable;
 	/* swap_gnd_mic returns true if extern GND/MIC swap switch toggled */
 	bool (*swap_gnd_mic) (struct snd_soc_codec *);
 };
+extern int tabla_check_bandgap_status(struct snd_soc_codec *codec);
+
+extern void tabla_set_h2w_status(struct snd_soc_codec *codec, u32 status);
 
 extern int tabla_hs_detect(struct snd_soc_codec *codec,
 			   const struct tabla_mbhc_config *cfg);
+
+enum h2w_status {
+	H2W_NONE = 0,
+	H2W_HEADSET,
+	H2W_HEADPHONE,
+};
 
 struct anc_header {
 	u32 reserved[3];

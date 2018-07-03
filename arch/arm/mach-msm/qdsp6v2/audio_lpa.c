@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2008 Google, Inc.
  * Copyright (C) 2008 HTC Corporation
- * Copyright (c) 2009-2012, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2009-2013, The Linux Foundation. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -744,8 +744,8 @@ static long audio_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 
 		pr_debug("%s: AUDIO_GET_STATS cmd\n", __func__);
 		memset(&stats, 0, sizeof(stats));
-		timestamp = q6asm_get_session_time(audio->ac);
-		if (timestamp < 0) {
+		rc = q6asm_get_session_time(audio->ac, &timestamp);
+		if (rc < 0) {
 			pr_err("%s: Get Session Time return value =%lld\n",
 				__func__, timestamp);
 			return -EAGAIN;
@@ -1103,9 +1103,9 @@ static void audlpa_unmap_ion_region(struct audio *audio)
 	pr_debug("%s[%p]:\n", __func__, audio);
 	list_for_each_safe(ptr, next, &audio->ion_region_queue) {
 		region = list_entry(ptr, struct audlpa_ion_region, list);
+		pr_debug("%s[%p]: phy_address = 0x%lx\n",
+			__func__, audio, region->paddr);
 		if (region != NULL) {
-			pr_debug("%s[%p]: phy_address = 0x%lx\n",
-					__func__, audio, region->paddr);
 			rc = q6asm_memory_unmap(audio->ac,
 					(uint32_t)region->paddr, IN);
 			if (rc < 0)
@@ -1126,8 +1126,8 @@ static int audio_release(struct inode *inode, struct file *file)
 	if (audio->out_enabled)
 		audlpa_async_flush(audio);
 	audio->wflush = 0;
-	audlpa_unmap_ion_region(audio);
 	audio_disable(audio);
+	audlpa_unmap_ion_region(audio);
 	msm_clear_session_id(audio->ac->session);
 	auddev_unregister_evt_listner(AUDDEV_CLNT_DEC, audio->ac->session);
 	q6asm_audio_client_free(audio->ac);

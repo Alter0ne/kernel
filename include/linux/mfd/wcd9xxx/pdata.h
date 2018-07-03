@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -115,6 +115,11 @@ struct wcd9xxx_micbias_setting {
 	u8 bias2_cap_mode;
 	u8 bias3_cap_mode;
 	u8 bias4_cap_mode;
+	u8 bias1_ext_cap:1;
+	u8 bias2_ext_cap:1;
+	u8 bias3_ext_cap:1;
+	u8 bias4_ext_cap:1;
+
 };
 
 struct wcd9xxx_ocp_setting {
@@ -125,7 +130,7 @@ struct wcd9xxx_ocp_setting {
 	unsigned int	hph_ocp_limit:3; /* Headphone OCP current limit */
 };
 
-#define MAX_REGULATOR	6
+#define MAX_REGULATOR	7
 /*
  *      format : TABLA_<POWER_SUPPLY_PIN_NAME>_CUR_MAX
  *
@@ -153,6 +158,7 @@ struct wcd9xxx_pdata {
 	int irq_base;
 	int num_irqs;
 	int reset_gpio;
+	int is_micbias1_capless;
 	struct wcd9xxx_amic amic_settings;
 	struct slim_device slimbus_slave_device;
 	struct wcd9xxx_micbias_setting micbias;
