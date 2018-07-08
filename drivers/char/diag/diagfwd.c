@@ -354,7 +354,7 @@ int diag_device_write(void *buf, int proc_num, struct diag_request *write_ptr)
 				}
 		}
 
-#ifdef CONFIG_DIAG_BRIDGE_CODE
+#ifdef CONFIG_DIAGFWD_BRIDGE_CODE
 		else if (proc_num == HSIC_DATA) {
 			for (i = 0; i < driver->poolsize_hsic_write; i++) {
 				if (driver->hsic_buf_tbl[i].length == 0) {
@@ -407,7 +407,7 @@ int diag_device_write(void *buf, int proc_num, struct diag_request *write_ptr)
 				&(driver->diag_read_sdio_work));
 		}
 #endif
-#ifdef CONFIG_DIAG_BRIDGE_CODE
+#ifdef CONFIG_DIAGFWD_BRIDGE_CODE
 		else if (proc_num == HSIC_DATA) {
 			if (driver->hsic_ch)
 				queue_work(driver->diag_bridge_wq,
@@ -457,7 +457,7 @@ int diag_device_write(void *buf, int proc_num, struct diag_request *write_ptr)
 						"while USB write\n");
 		}
 #endif
-#ifdef CONFIG_DIAG_BRIDGE_CODE
+#ifdef CONFIG_DIAGFWD_BRIDGE_CODE
 		else if (proc_num == HSIC_DATA) {
 			if (driver->hsic_device_enabled) {
 				struct diag_request *write_ptr_mdm;

@@ -504,7 +504,7 @@ static ssize_t diag_dbgfs_read_table(struct file *file, char __user *ubuf,
 	return ret;
 }
 
-#ifdef CONFIG_DIAG_BRIDGE_CODE
+#ifdef CONFIG_DIAGFWD_BRIDGE_CODE
 static ssize_t diag_dbgfs_read_hsic(struct file *file, char __user *ubuf,
 				    size_t count, loff_t *ppos)
 {
@@ -591,7 +591,7 @@ void diag_debugfs_init(void)
 	debugfs_create_file("work_pending", 0444, diag_dbgfs_dent, 0,
 		&diag_dbgfs_workpending_ops);
 
-#ifdef CONFIG_DIAG_BRIDGE_CODE
+#ifdef CONFIG_DIAGFWD_BRIDGE_CODE
 	debugfs_create_file("hsic", 0444, diag_dbgfs_dent, 0,
 		&diag_dbgfs_hsic_ops);
 #endif

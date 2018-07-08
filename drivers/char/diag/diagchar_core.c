@@ -32,7 +32,7 @@
 #ifdef CONFIG_DIAG_SDIO_PIPE
 #include "diagfwd_sdio.h"
 #endif
-#ifdef CONFIG_DIAG_BRIDGE_CODE
+#ifdef CONFIG_DIAGFWD_BRIDGE_CODE
 #include "diagfwd_hsic.h"
 #include "diagfwd_smux.h"
 #endif
@@ -235,7 +235,7 @@ static int diagchar_close(struct inode *inode, struct file *file)
 	if (driver->logging_process_id == current->tgid) {
 		driver->logging_mode = USB_MODE;
 		diagfwd_connect();
-#ifdef CONFIG_DIAG_BRIDGE_CODE
+#ifdef CONFIG_DIAGFWD_BRIDGE_CODE
 		driver->num_hsic_buf_tbl_entries = 0;
 		for (i = 0; i < driver->poolsize_hsic_write; i++) {
 			if (driver->hsic_buf_tbl[i].buf) {
@@ -510,7 +510,7 @@ long diagchar_ioctl(struct file *filp,
 #ifdef CONFIG_DIAG_SDIO_PIPE
 			driver->in_busy_sdio = 1;
 #endif
-#ifdef CONFIG_DIAG_BRIDGE_CODE
+#ifdef CONFIG_DIAGFWD_BRIDGE_CODE
 			driver->num_hsic_buf_tbl_entries = 0;
 			for (i = 0; i < driver->poolsize_hsic_write; i++) {
 				if (driver->hsic_buf_tbl[i].buf) {
@@ -549,7 +549,7 @@ long diagchar_ioctl(struct file *filp,
 				queue_work(driver->diag_sdio_wq,
 					&(driver->diag_read_sdio_work));
 #endif
-#ifdef CONFIG_DIAG_BRIDGE_CODE
+#ifdef CONFIG_DIAGFWD_BRIDGE_CODE
 			driver->num_hsic_buf_tbl_entries = 0;
 			for (i = 0; i < driver->poolsize_hsic_write; i++) {
 				driver->hsic_buf_tbl[i].buf = 0;
@@ -562,13 +562,13 @@ long diagchar_ioctl(struct file *filp,
 		else if (temp == USB_MODE && driver->logging_mode
 							 == NO_LOGGING_MODE) {
 			diagfwd_disconnect();
-#ifdef CONFIG_DIAG_BRIDGE_CODE
+#ifdef CONFIG_DIAGFWD_BRIDGE_CODE
 			diagfwd_disconnect_bridge(0);
 #endif
 		} else if (temp == NO_LOGGING_MODE && driver->logging_mode
 								== USB_MODE) {
 			diagfwd_connect();
-#ifdef CONFIG_DIAG_BRIDGE_CODE
+#ifdef CONFIG_DIAGFWD_BRIDGE_CODE
 			diagfwd_connect_bridge(0);
 #endif
 		} else if (temp == USB_MODE && driver->logging_mode
@@ -598,7 +598,7 @@ long diagchar_ioctl(struct file *filp,
 				queue_work(driver->diag_sdio_wq,
 					&(driver->diag_read_sdio_work));
 #endif
-#ifdef CONFIG_DIAG_BRIDGE_CODE
+#ifdef CONFIG_DIAGFWD_BRIDGE_CODE
 			driver->num_hsic_buf_tbl_entries = 0;
 			for (i = 0; i < driver->poolsize_hsic_write; i++) {
 				driver->hsic_buf_tbl[i].buf = 0;
@@ -610,7 +610,7 @@ long diagchar_ioctl(struct file *filp,
 		} else if (temp == MEMORY_DEVICE_MODE &&
 				 driver->logging_mode == USB_MODE) {
 			diagfwd_connect();
-#ifdef CONFIG_DIAG_BRIDGE_CODE
+#ifdef CONFIG_DIAGFWD_BRIDGE_CODE
 			driver->num_hsic_buf_tbl_entries = 0;
 			for (i = 0; i < driver->poolsize_hsic_write; i++) {
 				if (driver->hsic_buf_tbl[i].buf) {
@@ -782,7 +782,7 @@ drop:
 			driver->in_busy_sdio = 0;
 		}
 #endif
-#ifdef CONFIG_DIAG_BRIDGE_CODE
+#ifdef CONFIG_DIAGFWD_BRIDGE_CODE
 
 		for (i = 0; i < driver->poolsize_hsic_write; i++) {
 			if (driver->hsic_buf_tbl[i].length > 0) {
@@ -984,7 +984,7 @@ static int diagchar_write(struct file *file, const char __user *buf,
 			}
 		}
 #endif
-#ifdef CONFIG_DIAG_BRIDGE_CODE
+#ifdef CONFIG_DIAGFWD_BRIDGE_CODE
 		/* send masks to 9k too */
 		if (driver->hsic_ch && (payload_size > 0)) {
 			/* wait sending mask updates if HSIC ch not ready */
@@ -1285,7 +1285,7 @@ void diag_sdio_fn(int type)
 inline void diag_sdio_fn(int type) {}
 #endif
 
-#ifdef CONFIG_DIAG_BRIDGE_CODE
+#ifdef CONFIG_DIAGFWD_BRIDGE_CODE
 void diag_bridge_fn(int type)
 {
 	if (type == INIT)
