@@ -213,10 +213,6 @@ struct msm_mctl_post_proc_cmd {
 #if defined(CONFIG_MACH_ACER_A9) || defined(ACER_A9)
 #define MSM_CAMERA_LED_TORCH 5
 #endif
-#ifdef CONFIG_MACH_ACER_A11RD
-#define MSM_CAMERA_LED_TORCH_OFF 0
-#define MSM_CAMERA_LED_TORCH_ON 1
-#endif
 
 
 #define MSM_CAMERA_STROBE_FLASH_NONE 0

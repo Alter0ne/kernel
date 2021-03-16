@@ -123,9 +123,7 @@ static struct gpiomux_setting wcnss_5wire_active_cfg = {
 	.pull = GPIOMUX_PULL_DOWN,
 };
 
-#if defined(CONFIG_MACH_ACER_A9) || defined(CONFIG_MACH_ACER_A11RD)
-#if defined(CONFIG_MACH_ACER_A11RD)
-#elif defined(CONFIG_MACH_ACER_A9)
+#if defined(CONFIG_MACH_ACER_A9)
 static struct gpiomux_setting ts_issp_clk_act_cfg = {
 	.func = GPIOMUX_FUNC_GPIO,
 	.drv = GPIOMUX_DRV_2MA,
@@ -149,7 +147,6 @@ static struct gpiomux_setting ts_issp_data_sus_cfg = {
 	.drv = GPIOMUX_DRV_2MA,
 	.pull = GPIOMUX_PULL_UP,
 };
-#endif
 static struct gpiomux_setting ts_rst_act_cfg = {
 	.func = GPIOMUX_FUNC_GPIO,
 	.drv = GPIOMUX_DRV_6MA,
@@ -258,8 +255,7 @@ static struct gpiomux_setting sii8334_irq_suspend_cfg = {
 	.pull = GPIOMUX_PULL_UP,
 };
 #endif
-#if defined(CONFIG_MACH_ACER_A11RD)
-#elif defined(CONFIG_MACH_ACER_A9)
+#if defined(CONFIG_MACH_ACER_A9)
 static struct gpiomux_setting hdmi_suspend_cfg = {
 	.func = GPIOMUX_FUNC_GPIO,
 	.drv = GPIOMUX_DRV_2MA,
@@ -336,358 +332,7 @@ static struct gpiomux_setting nfc_int_suspend_cfg = {
 	.pull = GPIOMUX_PULL_DOWN,
 	.dir = GPIOMUX_IN,
 };
-#if defined(CONFIG_MACH_ACER_A11RD)
-static struct msm_gpiomux_config a11_evt_gpio_unused_configs[] __initdata = {
-	{
-		.gpio = 6,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 7,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 8,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 12,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 13,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 14,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 15,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 22,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 25,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 32,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 33,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 34,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 41,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 43,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 48,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 51,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 52,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 53,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 55,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 56,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 63,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 64,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 65,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 66,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 71,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 72,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 77,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 78,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 80,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 82,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 91,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 92,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 93,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 94,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 95,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 99,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 100,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 101,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 102,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 107,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 109,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 111,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 113,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 120,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 121,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 124,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 128,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 129,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 131,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 132,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 134,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 135,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 140,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 141,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 144,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 145,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 150,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-	{
-		.gpio = 151,
-		.settings = {
-			[GPIOMUX_SUSPENDED] = &gpio_unused_cfg,
-		},
-	},
-};
-#elif defined(CONFIG_MACH_ACER_A9)
+#if defined(CONFIG_MACH_ACER_A9)
 static struct msm_gpiomux_config a9_dvt1_gpio_unused_configs[] __initdata = {
 	{
 		.gpio = 1,
@@ -1546,8 +1191,7 @@ static struct msm_gpiomux_config msm8960_audio_auxpcm_configs[] __initdata = {
 			[GPIOMUX_ACTIVE] = &audio_auxpcm[1],
 		},
 	},
-#if defined(CONFIG_MACH_ACER_A11RD)
-#elif defined(CONFIG_MACH_ACER_A9)
+#if defined(CONFIG_MACH_ACER_A9)
 	{
 		.gpio = 64,
 		.settings = {
@@ -1611,7 +1255,7 @@ static struct msm_gpiomux_config wcnss_5wire_interface[] = {
 	},
 };
 
-#if defined(CONFIG_MACH_ACER_A9) || defined(CONFIG_MACH_ACER_A11RD)
+#if defined(CONFIG_MACH_ACER_A9)
 static struct msm_gpiomux_config ts_configs[] __initdata = {
 	{	/* TS INTERRUPT */
 		.gpio = 11,
@@ -1627,8 +1271,7 @@ static struct msm_gpiomux_config ts_configs[] __initdata = {
 			[GPIOMUX_SUSPENDED] = &ts_rst_sus_cfg,
 		},
 	},
-#if defined(CONFIG_MACH_ACER_A11RD)
-#elif defined(CONFIG_MACH_ACER_A9)
+#if defined(CONFIG_MACH_ACER_A9)
 	{	/* TS ISSP DATA */
 		.gpio = 96,
 		.settings = {
@@ -1649,8 +1292,7 @@ static struct msm_gpiomux_config ts_configs[] __initdata = {
 
 #ifdef CONFIG_USB_EHCI_MSM_HSIC
 static struct msm_gpiomux_config msm8960_hsic_configs[] = {
-#if defined(CONFIG_MACH_ACER_A11RD)
-#elif defined(CONFIG_MACH_ACER_A9)
+#if defined(CONFIG_MACH_ACER_A9)
 	{
 		.gpio = 150,               /*HSIC_STROBE */
 		.settings = {
@@ -1833,8 +1475,7 @@ static struct msm_gpiomux_config msm8960_mdp_vsync_configs[] __initdata = {
 
 #ifdef CONFIG_FB_MSM_HDMI_MSM_PANEL
 static struct msm_gpiomux_config msm8960_hdmi_configs[] __initdata = {
-#if defined(CONFIG_MACH_ACER_A11RD)
-#elif defined(CONFIG_MACH_ACER_A9)
+#if defined(CONFIG_MACH_ACER_A9)
 	{
 		.gpio = 100,
 		.settings = {
@@ -1996,11 +1637,7 @@ int __init msm8960_init_gpiomux(void)
 		return rc;
 	}
 
-#if defined(CONFIG_MACH_ACER_A11RD)
-	pr_info("use A11 msm8960 unused table");
-	msm_gpiomux_install(a11_evt_gpio_unused_configs,
-			ARRAY_SIZE(a11_evt_gpio_unused_configs));
-#elif defined(CONFIG_MACH_ACER_A9)
+#if defined(CONFIG_MACH_ACER_A9)
 	if (acer_board_id <= HW_ID_DVT1_2) {
 		pr_info("use DVT1 msm8960 unused table");
 		msm_gpiomux_install(a9_dvt1_gpio_unused_configs,
@@ -2015,7 +1652,7 @@ int __init msm8960_init_gpiomux(void)
 	msm_gpiomux_install(msm8960_gsbi_configs,
 			ARRAY_SIZE(msm8960_gsbi_configs));
 
-#if defined(CONFIG_MACH_ACER_A9) || defined(CONFIG_MACH_ACER_A11RD)
+#if defined(CONFIG_MACH_ACER_A9)
 	msm_gpiomux_install(ts_configs,
 			ARRAY_SIZE(ts_configs));
 #endif

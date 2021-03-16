@@ -93,9 +93,7 @@
 #include <mach/msm_serial_hs.h>
 #include <mach/msm_serial_hs_lite.h>
 
-#if defined(CONFIG_MACH_ACER_A11RD)
-#include "board-acer-8960-a11-touch.h"
-#elif defined(CONFIG_MACH_ACER_A9)
+#if defined(CONFIG_MACH_ACER_A9)
 #include "board-acer-8960-a9-touch.h"
 #endif
 
@@ -2332,9 +2330,7 @@ static void __init acer_msm8960_init(void)
 	msm8960_init_mmc();
 
 	if (acer_boot_mode != CHARGER_BOOT) {
-#if defined(CONFIG_MACH_ACER_A11RD)
-		a11_ts_init();
-#elif defined(CONFIG_MACH_ACER_A9)
+#if defined(CONFIG_MACH_ACER_A9)
 		a9_ts_init();
 #endif
 	}

@@ -2787,22 +2787,7 @@ static void check_initial_ocv(struct pm8921_bms_chip *chip)
 }
 
 #ifdef CONFIG_ARCH_ACER_MSM8960
-#ifdef CONFIG_MACH_ACER_A11RD
-extern struct pm8921_bms_battery_data  a11_2050_data;
-extern char a11_2050_data_ver[];
-static int set_battery_data(struct pm8921_bms_chip *chip)
-{
-	pr_info("Load pm8921_bms_battery_data: a11_2050_data(v%s)\n",
-								a11_2050_data_ver);
-	chip->fcc = a11_2050_data.fcc;
-	chip->fcc_temp_lut = a11_2050_data.fcc_temp_lut;
-	chip->fcc_sf_lut = a11_2050_data.fcc_sf_lut;
-	chip->pc_temp_ocv_lut = a11_2050_data.pc_temp_ocv_lut;
-	chip->rbatt_sf_lut = a11_2050_data.rbatt_sf_lut;
-	chip->default_rbatt_mohm = a11_2050_data.default_rbatt_mohm;
-	return 0;
-}
-#else  //CONFIG_MACH_ACER_A9
+#ifdef CONFIG_MACH_ACER_A9
 extern struct pm8921_bms_battery_data  a9_1460_data;
 extern char a9_1460_data_ver[];
 static int set_battery_data(struct pm8921_bms_chip *chip)

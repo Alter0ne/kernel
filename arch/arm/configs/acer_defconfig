@@ -358,7 +358,6 @@ CONFIG_MSM_REMOTE_SPINLOCK_SFPB=y
 # Acer Board Selection
 #
 CONFIG_MACH_ACER_A9=y
-# CONFIG_MACH_ACER_A11RD is not set
 
 #
 # MSM Board Selection

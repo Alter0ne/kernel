@@ -274,13 +274,8 @@ int msm_camera_enable_vreg(struct device *dev, struct camera_vreg_t *cam_vreg,
 			regulator_disable(reg_ptr[i]);
 #else
 		for (i = num_vreg-1; i >= 0; i--) {
-#ifdef CONFIG_MACH_ACER_A11RD
-	                /*Keep the state of Cam_vdc(L8) and Cam_vana(L11)to be ON*/
-			if (strcmp(cam_vreg[i].reg_name, "cam_vana") != 0 && strcmp(cam_vreg[i].reg_name, "cam_vdc") != 0) {
-#else
 			/*Keep the state of Cam_vio(LVS5) and Cam_vana(L11)to be ON*/
 			if (strcmp(cam_vreg[i].reg_name, "cam_vana") != 0 && strcmp(cam_vreg[i].reg_name, "cam_vio") != 0) {
-#endif
 				regulator_disable(reg_ptr[i]);
 			}
 		}

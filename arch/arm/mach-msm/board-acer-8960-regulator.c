@@ -58,18 +58,13 @@ VREG_CONSUMERS(L7) = {
 };
 VREG_CONSUMERS(L8) = {
 	REGULATOR_SUPPLY("8921_l8",		NULL),
-#ifdef CONFIG_MACH_ACER_A11RD
-	REGULATOR_SUPPLY("cam_vdc",		"4-0010"),
-#else
 	REGULATOR_SUPPLY("dsi_vdc",		"mipi_dsi.1"),
-#endif
 };
 VREG_CONSUMERS(L9) = {
 	REGULATOR_SUPPLY("8921_l9",		NULL),
 	REGULATOR_SUPPLY("vdd",			"3-0024"),
 	REGULATOR_SUPPLY("vdd_ana",		"3-004a"),
-#if defined(CONFIG_MACH_ACER_A11RD)
-#elif defined(CONFIG_MACH_ACER_A9)
+#if defined(CONFIG_MACH_ACER_A9)
 	REGULATOR_SUPPLY("tp_vc",		"3-004d"),
 #endif
 };
@@ -150,8 +145,7 @@ VREG_CONSUMERS(L23) = {
 	REGULATOR_SUPPLY("pll_vdd",		"pil_riva"),
 	REGULATOR_SUPPLY("pll_vdd",		"pil_qdsp6v4.1"),
 	REGULATOR_SUPPLY("pll_vdd",		"pil_qdsp6v4.2"),
-#if defined(CONFIG_MACH_ACER_A11RD)
-#elif defined(CONFIG_MACH_ACER_A9)
+#if defined(CONFIG_MACH_ACER_A9)
 	REGULATOR_SUPPLY("tp_vdd",		"3-004d"),
 #endif
 };
@@ -184,9 +178,6 @@ VREG_CONSUMERS(L29) = {
 	REGULATOR_SUPPLY("lcd_vddio",		"mipi_dsi.1"),
 #elif defined CONFIG_MACH_ACER_A9
 	REGULATOR_SUPPLY("dsi_vddio",		"mipi_dsi.1"),
-#endif
-#if defined(CONFIG_MACH_ACER_A11RD)
-	REGULATOR_SUPPLY("a11_tp_vc",		NULL),
 #endif
 };
 VREG_CONSUMERS(S1) = {
@@ -253,9 +244,7 @@ VREG_CONSUMERS(LVS4) = {
 	REGULATOR_SUPPLY("8921_lvs4",		NULL),
 	REGULATOR_SUPPLY("vcc_i2c",		"3-0024"),
 	REGULATOR_SUPPLY("vcc_i2c",		"3-004a"),
-#if defined(CONFIG_MACH_ACER_A11RD)
-	REGULATOR_SUPPLY("lvs4_i2c1",		NULL),
-#elif defined(CONFIG_MACH_ACER_A9)
+#if defined(CONFIG_MACH_ACER_A9)
 	REGULATOR_SUPPLY("lvs4_i2c",		"3-004d"),
 #endif
 };
@@ -580,11 +569,7 @@ msm_rpm_regulator_init_data[] __devinitdata = {
 	RPM_LDO(L5,	 0, 1, 0, 2950000, 2950000, NULL,      0, 0),
 	RPM_LDO(L6,	 0, 1, 0, 2950000, 2950000, NULL,      0, 0),
 	RPM_LDO(L7,	 1, 1, 0, 1850000, 2950000, NULL,      10000, 10000),
-#ifdef CONFIG_MACH_ACER_A11RD
-	RPM_LDO(L8,	 0, 1, 0, 1800000, 1800000, NULL,      0, 0),
-#else
 	RPM_LDO(L8,	 0, 1, 0, 3000000, 3000000, NULL,      0, 0),
-#endif
 	RPM_LDO(L9,	 0, 1, 0, 2800000, 2800000, NULL,      0, 0),
 	RPM_LDO(L10,	 0, 1, 0, 3000000, 3000000, NULL,      0, 0),
 	RPM_LDO(L11,	 0, 1, 0, 2850000, 2850000, NULL,      0, 0),
@@ -592,11 +577,7 @@ msm_rpm_regulator_init_data[] __devinitdata = {
 	RPM_LDO(L14,	 0, 1, 0, 1800000, 1800000, NULL,      0, 0),
 	RPM_LDO(L15,	 0, 1, 0, 1800000, 2950000, NULL,      0, 0),
 	RPM_LDO(L16,	 0, 1, 0, 2800000, 2800000, NULL,      0, 0),
-#ifdef CONFIG_MACH_ACER_A11RD
-	RPM_LDO(L17,	 0, 1, 0, 2200000, 2200000, NULL,      0, 0),
-#else
 	RPM_LDO(L17,     0, 1, 0, 1800000, 2950000, NULL,      0, 0),
-#endif
 	RPM_LDO(L18,	 0, 1, 0, 1200000, 1200000, "8921_s4", 0, 0),
 	RPM_LDO(L21,	 0, 1, 0, 1900000, 1900000, "8921_s8", 0, 0),
 	RPM_LDO(L22,	 0, 1, 0, 2750000, 2750000, NULL,      0, 0),

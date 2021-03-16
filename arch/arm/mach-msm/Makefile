@@ -291,11 +291,7 @@ obj-$(CONFIG_MACH_MSM8930_CDP) += board-8930-all.o board-8930-regulator.o
 obj-$(CONFIG_MACH_MSM8930_MTP) += board-8930-all.o board-8930-regulator.o
 obj-$(CONFIG_MACH_MSM8930_FLUID) += board-8930-all.o board-8930-regulator.o
 ifdef CONFIG_ARCH_ACER_MSM8960
-ifdef CONFIG_MACH_ACER_A11RD
-obj-$(CONFIG_MACH_ACER_A11RD) += bms-acer-batterydata-a11.o
-else
 obj-$(CONFIG_MACH_ACER_A9) += bms-acer-batterydata.o
-endif
 else
 obj-$(CONFIG_PM8921_BMS) += bms-batterydata.o bms-batterydata-desay.o
 endif

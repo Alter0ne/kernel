@@ -394,7 +394,6 @@ void pm8921_battery_gauge_unregister(struct pmic_battery_gauge *batt_gauge)
 }
 EXPORT_SYMBOL(pm8921_battery_gauge_unregister);
 
-#ifndef CONFIG_MACH_ACER_A11RD
 extern int gauge_it_enable(bool enable);
 int pm8921_gauge_it_enable(bool enable)
 {
@@ -424,7 +423,6 @@ int pm8921_gauge_firmware_update(bool it_enable)
 		return -1;
 }
 EXPORT_SYMBOL(pm8921_gauge_firmware_update);
-#endif
 
 static struct pm8xxx_adc_arb_btm_param btm_config;
 

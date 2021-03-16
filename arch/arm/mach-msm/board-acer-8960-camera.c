@@ -451,9 +451,6 @@ static struct camera_vreg_t msm_8960_imx175_vreg[] = {
 	{"cam_vio", REG_VS, 0, 0, 0},
 	{"cam_vana", REG_LDO, 2800000, 2850000, 85600},
 	{"cam_vaf", REG_LDO, 2800000, 2800000, 300000},
-#ifdef CONFIG_MACH_ACER_A11RD
-	{"cam_vdc", REG_LDO, 1800000, 1800000, 300000},
-#endif
 };
 #else
 static struct camera_vreg_t msm_8960_cam_vreg[] = {

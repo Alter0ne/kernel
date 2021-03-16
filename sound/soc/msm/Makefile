@@ -62,11 +62,7 @@ snd-soc-qdsp6-objs += msm-pcm-lpa.o msm-pcm-afe.o
 obj-$(CONFIG_SND_SOC_QDSP6) += snd-soc-qdsp6.o
 
 ifdef CONFIG_MACH_ACER_A9
-ifdef CONFIG_MACH_ACER_A11RD
-snd-soc-msm8960-objs := msm8960-acer-a11.o
-else
 snd-soc-msm8960-objs := msm8960-acer-a9.o
-endif
 else
 snd-soc-msm8960-objs := msm8960.o apq8064.o msm8930.o mpq8064.o apq8064-i2s.o
 endif

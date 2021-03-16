@@ -734,11 +734,7 @@ S8	NFC_DrvOp(enum nfc_drv_op_e eNfcDrvTestItem, void * pvInOutBuf)
 			break;
 
 		case act_i2c_test:		/* 'c' */
-#ifdef CONFIG_MACH_ACER_A11RD
-				pr_info ("[NFC_DrvTest] I2C test, no gauge\n");
-#else
 				pr_info ("[NFC_DrvTest] I2C test, gauge device type = 0x%02x\n", gauge_device_type());
-#endif
 			break;
 
 		default:

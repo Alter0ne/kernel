@@ -44,10 +44,7 @@ bool apmt_state = false;
 #define INPUT_NEED_DEBUG 0
 #define PATH_MAX_LEN 100
 #define IGNORE_DELAY_USEC 10
-#if defined(CONFIG_MACH_ACER_A11RD)
-#define ABS_X_MAX 1199
-#define ABS_Y_MAX 1919
-#elif defined(CONFIG_MACH_ACER_A9)
+#if defined(CONFIG_MACH_ACER_A9)
 #define ABS_X_MAX 719
 #define ABS_Y_MAX 1279
 #elif defined(CONFIG_MACH_PICASSO_MF)

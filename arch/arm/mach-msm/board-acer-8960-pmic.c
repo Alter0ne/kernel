@@ -14,10 +14,6 @@
 #include <linux/interrupt.h>
 #include <linux/mfd/pm8xxx/pm8921.h>
 #include <linux/mfd/pm8xxx/pm8xxx-adc.h>
-#if defined(CONFIG_MACH_ACER_A11RD)
-#include <linux/leds.h>
-#include <linux/leds-pm8xxx.h>
-#endif
 #ifdef CONFIG_PMIC8XXX_VIBRATOR
 #include <linux/mfd/pm8xxx/vibrator.h>
 #endif
@@ -107,54 +103,7 @@ struct pm8xxx_mpp_init {
 			PM_GPIO_FUNC_NORMAL, 0, 0)
 
 /* Initial PM8921 GPIO configurations */
-#if defined(CONFIG_MACH_ACER_A11RD)
-static struct pm8xxx_gpio_init a11_evt_pm8921_gpios[] __initdata = {
-	PM8XXX_GPIO_DISABLE(1),
-	PM8XXX_GPIO_DISABLE(2),
-	PM8XXX_GPIO_DISABLE(3),
-	PM8XXX_GPIO_DISABLE(4),
-	PM8XXX_GPIO_DISABLE(5),
-	PM8XXX_GPIO_DISABLE(6),
-	PM8XXX_GPIO_DISABLE(8),
-	PM8XXX_GPIO_DISABLE(9),
-	PM8XXX_GPIO_DISABLE(10),
-	PM8XXX_GPIO_DISABLE(11),
-	PM8XXX_GPIO_DISABLE(12),
-	PM8XXX_GPIO_DISABLE(13),
-	PM8XXX_GPIO_DISABLE(14),
-	PM8XXX_GPIO_DISABLE(15),
-	PM8XXX_GPIO_DISABLE(16),
-	PM8XXX_GPIO_DISABLE(17),
-	PM8XXX_GPIO_DISABLE(19),
-	PM8XXX_GPIO_DISABLE(20),
-	PM8XXX_GPIO_DISABLE(21),
-	PM8XXX_GPIO_DISABLE(22),
-	PM8XXX_GPIO_OUTPUT(23, PM_GPIO_PULL_NO), /* VLTG_SEL */
-	PM8XXX_GPIO_DISABLE(24),
-	PM8XXX_GPIO_DISABLE(25),
-	PM8XXX_GPIO_DISABLE(26),
-	PM8XXX_GPIO_DISABLE(28),
-	PM8XXX_GPIO_DISABLE(31),
-	PM8XXX_GPIO_DISABLE(32),
-	PM8XXX_GPIO_OUTPUT(33, PM_GPIO_PULL_NO), /* LCDC_P5V_EN */
-	PM8XXX_GPIO_OUTPUT_STRENGTH(34, 0, PM_GPIO_STRENGTH_MED), /* WCD9310_REST_N */
-	PM8XXX_GPIO_OUTPUT(35, PM_GPIO_PULL_NO), /* EXT_BUCK_EN */
-	PM8XXX_GPIO_OUTPUT(36, PM_GPIO_PULL_NO), /* USIM_DETECT_N */
-	PM8XXX_GPIO_DISABLE(37),
-	PM8XXX_GPIO_DISABLE(38),
-	PM8XXX_GPIO_DISABLE(40),
-	PM8XXX_GPIO_DISABLE(41),
-	PM8XXX_GPIO_OUTPUT(42, PM_GPIO_PULL_NO), /* LCDC_N5V_EN */
-#ifdef CONFIG_FB_MSM_MIPI_DSI_HIMAX
-	PM8XXX_GPIO_OUTPUT(43, PM_GPIO_PULL_UP_30), /* DISP_RESET_N */
-#elif defined CONFIG_FB_MSM_MIPI_DSI_SHARP
-	PM8XXX_GPIO_OUTPUT(43, 0),                  /* Sharp Display Reset */
-#else
-	PM8XXX_GPIO_OUTPUT(43, PM_GPIO_PULL_UP_30), /* DISP_RESET_N */
-#endif
-};
-
-#elif defined(CONFIG_MACH_ACER_A9)
+#if defined(CONFIG_MACH_ACER_A9)
 static struct pm8xxx_gpio_init a9_dvt1_pm8921_gpios[] __initdata = {
 	PM8XXX_GPIO_DISABLE(1),
 	PM8XXX_GPIO_DISABLE(2),
@@ -310,16 +259,7 @@ static struct pm8xxx_gpio_init a9_dvt1_3_pm8921_gpios[] __initdata = {
 #endif
 
 /* Initial PM8921 MPP configurations */
-#if defined(CONFIG_MACH_ACER_A11RD)
-static struct pm8xxx_mpp_init a11_evt_pm8921_mpps[] __initdata = {
-	PM8XXX_MPP_INIT(7, D_OUTPUT, PM8921_MPP_DIG_LEVEL_S4, DOUT_CTRL_LOW), // NC
-	PM8XXX_MPP_INIT(8, D_OUTPUT, PM8921_MPP_DIG_LEVEL_S4, DOUT_CTRL_LOW),
-	PM8XXX_MPP_INIT(9, D_OUTPUT, PM8921_MPP_DIG_LEVEL_S4, DOUT_CTRL_LOW),
-	PM8XXX_MPP_INIT(10, D_OUTPUT, PM8921_MPP_DIG_LEVEL_S4, DOUT_CTRL_LOW),
-	PM8XXX_MPP_INIT(11, A_INPUT, PM8XXX_MPP_AIN_AMUX_CH6, AOUT_CTRL_DISABLE), /* For Headset ADC */
-	PM8XXX_MPP_INIT(12, A_INPUT, PM8XXX_MPP_AIN_AMUX_CH6, AOUT_CTRL_DISABLE), // Project ID
-};
-#elif defined(CONFIG_MACH_ACER_A9)
+#if defined(CONFIG_MACH_ACER_A9)
 static struct pm8xxx_mpp_init a9_dvt1_pm8921_mpps[] __initdata = {
 	PM8XXX_MPP_INIT(7, D_OUTPUT, PM8921_MPP_DIG_LEVEL_S4, DOUT_CTRL_LOW), // Enable MHL 5V
 	PM8XXX_MPP_INIT(8, D_OUTPUT, PM8921_MPP_DIG_LEVEL_S4, DOUT_CTRL_LOW),
@@ -356,13 +296,7 @@ void __init msm8960_pm8921_gpio_mpp_init(void)
 	int pm8921_gpios_count = 0;
 	int pm8921_mpps_count = 0;
 
-#if defined(CONFIG_MACH_ACER_A11RD)
-	pr_info("use A11 pm8921 init data");
-	pm8921_gpios = a11_evt_pm8921_gpios;
-	pm8921_gpios_count = ARRAY_SIZE(a11_evt_pm8921_gpios);
-	pm8921_mpps = a11_evt_pm8921_mpps;
-	pm8921_mpps_count = ARRAY_SIZE(a11_evt_pm8921_mpps);
-#elif defined(CONFIG_MACH_ACER_A9)
+#if defined(CONFIG_MACH_ACER_A9)
 	if (acer_board_id <= HW_ID_DVT1) {
 		pr_info("use DVT1 pm8921 init data");
 		pm8921_gpios = a9_dvt1_pm8921_gpios;
@@ -680,32 +614,7 @@ static int pm8921_therm_mitigation[] = {
 };
 
 
-#if defined(CONFIG_MACH_ACER_A11RD)
-#define MAX_VOLTAGE_MV		4350
-#define CHG_TERM_MA		100
-static struct pm8921_charger_platform_data pm8921_chg_pdata __devinitdata = {
-	.safety_time		= 480,
-	.ttrkl_time		= 50,
-	.update_time		= 60000,
-	.max_voltage		= MAX_VOLTAGE_MV,
-	.min_voltage		= 3200,
-	.resume_voltage_delta	= 80,
-	.term_current		= CHG_TERM_MA,
-	.cool_temp		= INT_MIN,
-	.warm_temp		= INT_MIN,
-	.max_bat_chg_current	= 1400,
-	.trkl_voltage		= 2800,
-	.weak_voltage		= 3200,
-	.trkl_current		= 50,
-	.weak_current		= 325,
-	.vin_min		= 4350,
-	.cold_thr		= 0,
-	.hot_thr		= 1,
-	.thermal_mitigation	= pm8921_therm_mitigation,
-	.thermal_levels		= ARRAY_SIZE(pm8921_therm_mitigation),
-	.rconn_mohm		= 51,
-};
-#else //CONFIG_MACH_ACER_A9
+#if defined(CONFIG_MACH_ACER_A9)
 #define MAX_VOLTAGE_MV		4200
 #define CHG_TERM_MA		100
 static struct pm8921_charger_platform_data pm8921_chg_pdata __devinitdata = {
@@ -737,19 +646,7 @@ static struct pm8xxx_misc_platform_data pm8xxx_misc_pdata = {
 };
 
 
-#if defined(CONFIG_MACH_ACER_A11RD)
-static struct pm8921_bms_platform_data pm8921_bms_pdata __devinitdata = {
-	.battery_type			= BATT_UNKNOWN,
-	.r_sense			= 10,
-	.v_cutoff			= 3200,
-	.max_voltage_uv			= MAX_VOLTAGE_MV * 1000,
-	.rconn_mohm			= 51,
-	.enable_fcc_learning	= 1,
-	.shutdown_soc_valid_limit	= 20,
-	.adjust_soc_low_threshold	= 25,
-	.chg_term_ua			= CHG_TERM_MA * 1000,
-};
-#else //CONFIG_MACH_ACER_A9
+#if defined(CONFIG_MACH_ACER_A9)
 static struct pm8921_bms_platform_data pm8921_bms_pdata __devinitdata = {
 	.battery_type			= BATT_UNKNOWN,
 	.r_sense			= 12,
@@ -763,176 +660,10 @@ static struct pm8921_bms_platform_data pm8921_bms_pdata __devinitdata = {
 };
 #endif
 
-#if defined(CONFIG_MACH_ACER_A11RD)
-#define	PM8921_LC_LED_MAX_CURRENT	4	/* I = 4mA */
-#define	PM8921_LC_LED_LOW_CURRENT	1	/* I = 1mA */
-#define PM8XXX_LED_PWM_PERIOD		100000
-#define PM8XXX_LED_PWM_DUTY_MS		10
-
-/**
- * PM8XXX_PWM_CHANNEL_NONE shall be used when LED shall not be
- * driven using PWM feature.
- */
-#define PM8XXX_PWM_CHANNEL_NONE		-1
-#endif
 #ifdef CONFIG_PMIC8XXX_VIBRATOR
 static struct pm8xxx_vibrator_platform_data pm8xxx_vib_pdata = {
 	.level_mV = 3000,
 	.max_timeout_ms = 15000,
-};
-#endif
-#if defined(CONFIG_MACH_ACER_A11RD)
-static struct led_info pm8921_led_info_liquid[] = {
-	{
-		.name		= "led:red",
-		.flags		= PM8XXX_ID_LED_0,
-		.default_trigger	= "battery-charging",
-	},
-	{
-		.name		= "led:green",
-		.flags		= PM8XXX_ID_LED_1,
-		.default_trigger	= "battery-full",
-	},
-	{
-		.name		= "led:blue",
-		.flags		= PM8XXX_ID_LED_2,
-		.default_trigger	= "notification",
-	},
-};
-
-static struct pm8xxx_led_config pm8921_led_configs_liquid[] = {
-	[0] = {
-		.id = PM8XXX_ID_LED_0,
-		.mode = PM8XXX_LED_MODE_MANUAL,
-		.max_current = PM8921_LC_LED_MAX_CURRENT,
-	},
-	[1] = {
-		.id = PM8XXX_ID_LED_1,
-		.mode = PM8XXX_LED_MODE_MANUAL,
-		.max_current = PM8921_LC_LED_LOW_CURRENT,
-	},
-	[2] = {
-		.id = PM8XXX_ID_LED_2,
-		.mode = PM8XXX_LED_MODE_MANUAL,
-		.max_current = PM8921_LC_LED_MAX_CURRENT,
-	},
-};
-
-static struct led_platform_data pm8xxx_leds_core_liquid = {
-	.num_leds = ARRAY_SIZE(pm8921_led_info_liquid),
-	.leds = pm8921_led_info_liquid,
-};
-
-static struct pm8xxx_led_platform_data pm8xxx_leds_pdata_liquid = {
-	.led_core = &pm8xxx_leds_core_liquid,
-	.configs = pm8921_led_configs_liquid,
-	.num_configs = ARRAY_SIZE(pm8921_led_configs_liquid),
-};
-
-static struct led_info pm8921_led_info[] = {
-	[0] = {
-		.name			= "led:Home",
-		.default_trigger	= "battery-charging",
-	},
-	[1] = {
-		.name			= "led:Multi-task",
-		.default_trigger	= "battery-full",
-	},
-	[2] = {
-		.name 			= "led:Back",
-		.default_trigger 	= "notification",
-        },
-};
-
-static struct led_platform_data pm8921_led_core_pdata = {
-	.num_leds = ARRAY_SIZE(pm8921_led_info),
-	.leds = pm8921_led_info,
-};
-
-static int pm8921_led0_pwm_duty_pcts[56] = {
-                    100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
-                    100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
-                    100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
-                    100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
-                    100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
-                    100, 100, 100, 100, 100,
-};
-
-static int pm8921_led1_pwm_duty_pcts[56] = {
-                    100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
-                    100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
-                    100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
-                    100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
-                    100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
-                    100, 100, 100, 100, 100,
-};
-
-static int pm8921_led2_pwm_duty_pcts[56] = {
-                    100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
-                    100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
-                    100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
-                    100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
-                    100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
-                    100, 100, 100, 100, 100,
-};
-
-/*
- * Note: There is a bug in LPG module that results in incorrect
- * behavior of pattern when LUT index 0 is used. So effectively
- * there are 63 usable LUT entries.
- */
-static struct pm8xxx_pwm_duty_cycles pm8921_led0_pwm_duty_cycles = {
-	.duty_pcts = (int *)&pm8921_led0_pwm_duty_pcts,
-	.num_duty_pcts = ARRAY_SIZE(pm8921_led0_pwm_duty_pcts),
-	.duty_ms = PM8XXX_LED_PWM_DUTY_MS,
-	.start_idx = 1,
-};
-
-static struct pm8xxx_pwm_duty_cycles pm8921_led1_pwm_duty_cycles = {
-	.duty_pcts = (int *)&pm8921_led1_pwm_duty_pcts,
-	.num_duty_pcts = ARRAY_SIZE(pm8921_led1_pwm_duty_pcts),
-	.duty_ms = PM8XXX_LED_PWM_DUTY_MS,
-	.start_idx = 1,
-};
-
-static struct pm8xxx_pwm_duty_cycles pm8921_led2_pwm_duty_cycles = {
-	.duty_pcts = (int *)&pm8921_led2_pwm_duty_pcts,
-	.num_duty_pcts = ARRAY_SIZE(pm8921_led2_pwm_duty_pcts),
-	.duty_ms = PM8XXX_LED_PWM_DUTY_MS,
-	.start_idx = 1,
-};
-
-static struct pm8xxx_led_config pm8921_led_configs[] = {
-	[0] = {
-		.id = PM8XXX_ID_LED_0,
-		.mode = PM8XXX_LED_MODE_PWM2,
-		.max_current = PM8921_LC_LED_MAX_CURRENT,
-		.pwm_channel = 5,
-		.pwm_period_us = PM8XXX_LED_PWM_PERIOD,
-		.pwm_duty_cycles = &pm8921_led0_pwm_duty_cycles,
-	},
-	[1] = {
-		.id = PM8XXX_ID_LED_1,
-		.mode = PM8XXX_LED_MODE_PWM1,
-		.max_current = PM8921_LC_LED_MAX_CURRENT,
-		.pwm_channel = 4,
-		.pwm_period_us = PM8XXX_LED_PWM_PERIOD,
-		.pwm_duty_cycles = &pm8921_led1_pwm_duty_cycles,
-	},
-	[2] = {
-		.id = PM8XXX_ID_LED_2,
-		.mode = PM8XXX_LED_MODE_PWM3,
-		.max_current = PM8921_LC_LED_MAX_CURRENT,
-		.pwm_channel = 6,
-		.pwm_period_us = PM8XXX_LED_PWM_PERIOD,
-		.pwm_duty_cycles = &pm8921_led2_pwm_duty_cycles,
-        },
-};
-
-static struct pm8xxx_led_platform_data pm8xxx_leds_pdata = {
-		.led_core = &pm8921_led_core_pdata,
-		.configs = pm8921_led_configs,
-		.num_configs = ARRAY_SIZE(pm8921_led_configs),
 };
 #endif
 
@@ -941,18 +672,6 @@ static struct pm8xxx_ccadc_platform_data pm8xxx_ccadc_pdata = {
 	.calib_delay_ms		= 600000,
 };
 
-#if defined(CONFIG_MACH_ACER_A11RD)
-/**
- * PM8XXX_PWM_DTEST_CHANNEL_NONE shall be used when no LPG
- * channel should be in DTEST mode.
- */
-
-#define PM8XXX_PWM_DTEST_CHANNEL_NONE   (-1)
-
-static struct pm8xxx_pwm_platform_data pm8xxx_pwm_pdata = {
-	.dtest_channel	= PM8XXX_PWM_DTEST_CHANNEL_NONE,
-};
-#endif
 static struct pm8921_platform_data pm8921_platform_data __devinitdata = {
 	.irq_pdata		= &pm8xxx_irq_pdata,
 	.gpio_pdata		= &pm8xxx_gpio_pdata,
@@ -965,13 +684,7 @@ static struct pm8921_platform_data pm8921_platform_data __devinitdata = {
 	.charger_pdata		= &pm8921_chg_pdata,
 	.bms_pdata		= &pm8921_bms_pdata,
 	.adc_pdata		= &pm8xxx_adc_pdata,
-#if defined(CONFIG_MACH_ACER_A11RD)
-	.leds_pdata		= &pm8xxx_leds_pdata,
-#endif
 	.ccadc_pdata		= &pm8xxx_ccadc_pdata,
-#if defined(CONFIG_MACH_ACER_A11RD)
-	.pwm_pdata		= &pm8xxx_pwm_pdata,
-#endif
 #ifdef CONFIG_PMIC8XXX_VIBRATOR
 	.vibrator_pdata		= &pm8xxx_vib_pdata,
 #endif
@@ -1035,9 +748,6 @@ void __init msm8960_init_pmic(void)
 
 	if (machine_is_msm8960_liquid()) {
 		pm8921_platform_data.keypad_pdata = &keypad_data_liquid;
-#if defined(CONFIG_MACH_ACER_A11RD)
-		pm8921_platform_data.leds_pdata = &pm8xxx_leds_pdata_liquid;
-#endif
 		pm8921_platform_data.bms_pdata->battery_type = BATT_DESAY;
 	} else if (machine_is_msm8960_mtp()) {
 		pm8921_platform_data.bms_pdata->battery_type = BATT_PALLADIUM;
